@@ -2,6 +2,8 @@
 
 Modules:
     informationmodel
+    component
+    componentfactory
 """
 
 try:
