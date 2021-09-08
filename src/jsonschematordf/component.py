@@ -1,6 +1,8 @@
 """Component module."""
 from typing import Dict, List, Optional
 
+from jsonschematordf.types.enums import EMPTY_PATH
+
 
 class Component:
     """Utility class representing a JSON Schema component."""
@@ -27,10 +29,12 @@ class Component:
         "_all_of",
         "_one_of",
         "_ref",
+        "_max_occurs",
+        "_min_occurs",
     )
 
     _path: str
-    _type: Optional[List[str]]
+    _type: Optional[str]
     _title: Optional[Dict[None, str]]
     _description: Optional[Dict[None, str]]
     _pattern: Optional[str]
@@ -39,8 +43,8 @@ class Component:
     _enum: Optional[List[str]]
     _minimum: Optional[int]
     _maximum: Optional[int]
-    _exclusive_minimum: Optional[int]
-    _exclusive_maximum: Optional[int]
+    _exclusive_minimum: Optional[bool]
+    _exclusive_maximum: Optional[bool]
     _min_length: Optional[int]
     _max_length: Optional[int]
     _min_items: Optional[int]
@@ -50,11 +54,13 @@ class Component:
     _all_of: Optional[List["Component"]]
     _one_of: Optional[List["Component"]]
     _ref: Optional[str]
+    _max_occurs: Optional[str]
+    _min_occurs: Optional[str]
 
     def __init__(
         self,
         path: str,
-        type: Optional[List[str]] = None,
+        type: Optional[str] = None,
         title: Optional[Dict[None, str]] = None,
         description: Optional[Dict[None, str]] = None,
         pattern: Optional[str] = None,
@@ -63,8 +69,8 @@ class Component:
         enum: Optional[List[str]] = None,
         minimum: Optional[int] = None,
         maximum: Optional[int] = None,
-        exclusive_minimum: Optional[int] = None,
-        exclusive_maximum: Optional[int] = None,
+        exclusive_minimum: Optional[bool] = None,
+        exclusive_maximum: Optional[bool] = None,
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
         min_items: Optional[int] = None,
@@ -74,6 +80,8 @@ class Component:
         all_of: Optional[List["Component"]] = None,
         one_of: Optional[List["Component"]] = None,
         ref: Optional[str] = None,
+        max_occurs: Optional[str] = None,
+        min_occurs: Optional[str] = None,
     ) -> None:
         """Constructor for Component object."""
         self._path = path
@@ -97,6 +105,8 @@ class Component:
         self._all_of = all_of
         self._one_of = one_of
         self._ref = ref
+        self._max_occurs = max_occurs
+        self._min_occurs = min_occurs
 
     def __eq__(self, o: object) -> bool:
         """Evaluate equality between Component and other object."""
@@ -123,7 +133,19 @@ class Component:
             and self.all_of == o.all_of
             and self.one_of == o.one_of
             and self.ref == o.ref
+            and self.max_occurs == o.max_occurs
+            and self.min_occurs == o.min_occurs
         )
+
+    @property
+    def complete_path(self) -> Optional[str]:
+        """Constructs complete path to component."""
+        non_relative_path = self._path.replace(EMPTY_PATH, "")
+        title_string = self._title.get(None) if self._title else None
+        if title_string:
+            return f"{non_relative_path}#{title_string}"
+        else:
+            return None
 
     @property
     def path(self) -> str:
@@ -131,7 +153,7 @@ class Component:
         return self._path
 
     @property
-    def type(self) -> Optional[List[str]]:
+    def type(self) -> Optional[str]:
         """Getter for type."""
         return self._type
 
@@ -229,3 +251,13 @@ class Component:
     def ref(self) -> Optional[str]:
         """Getter for ref."""
         return self._ref
+
+    @property
+    def max_occurs(self) -> Optional[str]:
+        """Getter for ref."""
+        return self._max_occurs
+
+    @property
+    def min_occurs(self) -> Optional[str]:
+        """Getter for ref."""
+        return self._min_occurs
