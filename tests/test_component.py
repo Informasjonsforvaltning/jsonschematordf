@@ -5,8 +5,9 @@ from jsonschematordf.component import Component
 def test_component_sets_fields_correctly() -> None:
     """Test intializing Component object."""
     path = "#/path"
-    type = ["type"]
+    type = "type"
     title = {None: "title"}
+    complete_path = "/path#title"
     description = {None: "description"}
     pattern = "pattern"
     format = "format"
@@ -14,8 +15,8 @@ def test_component_sets_fields_correctly() -> None:
     enum = ["enum"]
     minimum = 0
     maximum = 1
-    exclusive_minimum = 0
-    exclusive_maximum = 1
+    exclusive_minimum = False
+    exclusive_maximum = True
     min_length = 0
     max_length = 1
     min_items = 0
@@ -45,6 +46,8 @@ def test_component_sets_fields_correctly() -> None:
         )
     ]
     ref = "#/path/test"
+    max_occurs = "*"
+    min_occurs = "0"
 
     component = Component(
         path,
@@ -68,9 +71,12 @@ def test_component_sets_fields_correctly() -> None:
         all_of,
         one_of,
         ref,
+        max_occurs,
+        min_occurs,
     )
 
     assert component.path == path
+    assert component.complete_path == complete_path
     assert component.type == type
     assert component.title == title
     assert component.description == description
@@ -91,3 +97,13 @@ def test_component_sets_fields_correctly() -> None:
     assert component.all_of == all_of
     assert component.one_of == one_of
     assert component.ref == ref
+    assert component.max_occurs == max_occurs
+    assert component.min_occurs == min_occurs
+
+
+def test_complete_path_returns_none_for_missing_title() -> None:
+    """Test that complete path is not built without title."""
+    path = "#/path"
+    component = Component(path)
+
+    assert component.complete_path is None
