@@ -420,7 +420,7 @@ python-versions = "*"
 
 [[package]]
 name = "modelldcatnotordf"
-version = "1.0.9"
+version = "1.1.0"
 description = "A library for mapping a modelldcatno model to rdf"
 category = "main"
 optional = false
@@ -1006,7 +1006,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "393088643ede308694c1c6c2cf791bc2c87403e291c58bd03fde796a62a5fe5f"
+content-hash = "9f9c71cefd3a4959fb30bf3cd1993ad41784db8df9ad5f5d3154ca94c3314b71"
 
 [metadata.files]
 alabaster = [
@@ -1258,8 +1258,8 @@ mccabe = [
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
 ]
 modelldcatnotordf = [
-    {file = "modelldcatnotordf-1.0.9-py3-none-any.whl", hash = "sha256:de6ba0c82ca013a0f57ee612284a17ffcc223544440dcd625aad503affc6add4"},
-    {file = "modelldcatnotordf-1.0.9.tar.gz", hash = "sha256:693cb7cfccaab804c7b4a9304ae3329f371360062fde803f452b9f497cdb81b6"},
+    {file = "modelldcatnotordf-1.1.0-py3-none-any.whl", hash = "sha256:40ce2f2377807e3b41f9a8b671e7a01a8e8d253e2494820cd1444fc5a044644f"},
+    {file = "modelldcatnotordf-1.1.0.tar.gz", hash = "sha256:2d3b8197ea3a221b6f7c84025f1bd9e5ddd6fc9d78c425de1bb3bcd899df6b94"},
 ]
 more-itertools = [
     {file = "more-itertools-8.8.0.tar.gz", hash = "sha256:83f0308e05477c68f56ea3a888172c78ed5d5b3c282addb67508e7ba6c8f813a"},

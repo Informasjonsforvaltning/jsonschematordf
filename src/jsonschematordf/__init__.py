@@ -4,6 +4,7 @@ Modules:
     informationmodel
     component
     componentfactory
+    modelldcatnofactory
 """
 
 try:

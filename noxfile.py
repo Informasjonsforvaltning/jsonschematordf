@@ -71,7 +71,7 @@ def mypy(session: Session) -> None:
     session.run("mypy", *args)
 
 
-@nox_poetry.session(python="3.8")
+@nox_poetry.session(python="3.9")
 def pytype(session: Session) -> None:
     """Run the static type checker using pytype."""
     args = session.posargs or ["--disable=import-error", *locations]
