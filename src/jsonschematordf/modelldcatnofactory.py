@@ -104,7 +104,7 @@ def _create_primitive_simple_type(component: Component, schema: Schema) -> Simpl
         },
     )
     identifier = _create_identifier(primitive_component, schema)
-    schema.add_parsed_component(primitive_component.path, identifier)
+    schema.add_parsed_component(primitive_component.complete_path, identifier)
 
     simple_type = SimpleType(identifier)
     simple_type.title = primitive_component.title
