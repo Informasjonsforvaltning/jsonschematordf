@@ -198,12 +198,12 @@ class Component:
         return self._maximum
 
     @property
-    def exclusive_minimum(self) -> Optional[int]:
+    def exclusive_minimum(self) -> Optional[bool]:
         """Getter for exclusive_minimum."""
         return self._exclusive_minimum
 
     @property
-    def exclusive_maximum(self) -> Optional[int]:
+    def exclusive_maximum(self) -> Optional[bool]:
         """Getter for exclusive_maximum."""
         return self._exclusive_maximum
 
