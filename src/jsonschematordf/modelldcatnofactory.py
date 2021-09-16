@@ -89,7 +89,12 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
             simple_type.max_inclusive = component.maximum
 
     if component.title and (component.type or component.format):
-        simple_type.has_property = [_create_specialization_property(component, schema)]
+        specialization_component = component_factory.new_from_component(
+            component, path=component.path + "/specializes"
+        )
+        simple_type.has_property = [
+            _create_specialization_property(specialization_component, schema)
+        ]
 
     return simple_type
 
@@ -104,7 +109,8 @@ def _create_primitive_simple_type(component: Component, schema: Schema) -> Simpl
         },
     )
     identifier = _create_identifier(primitive_component, schema)
-    schema.add_parsed_component(primitive_component.complete_path, identifier)
+    if primitive_component.complete_path:
+        schema.add_parsed_component(primitive_component.complete_path, identifier)
 
     simple_type = SimpleType(identifier)
     simple_type.title = primitive_component.title
@@ -119,4 +125,14 @@ def _create_specialization_property(
     component: Component, schema: Schema
 ) -> Specialization:
     """Create Specialization model property. TODO."""
-    return None
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    primitive_simple_type = _create_primitive_simple_type(component, schema)
+
+    specialization = Specialization(identifier)
+    if primitive_simple_type:
+        specialization.has_general_concept = primitive_simple_type
+
+    return specialization
