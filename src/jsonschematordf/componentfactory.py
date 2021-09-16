@@ -104,3 +104,61 @@ def create_component(
         max_occurs=max_occurs,
         min_occurs=min_occurs,
     )
+
+
+def new_from_component(
+    component: Component,
+    path: Optional[str] = None,
+    type: Optional[str] = None,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    pattern: Optional[str] = None,
+    format: Optional[str] = None,
+    required: Optional[List[str]] = None,
+    enum: Optional[List[str]] = None,
+    minimum: Optional[int] = None,
+    maximum: Optional[int] = None,
+    exclusive_minimum: Optional[bool] = None,
+    exclusive_maximum: Optional[bool] = None,
+    min_length: Optional[int] = None,
+    max_length: Optional[int] = None,
+    min_items: Optional[int] = None,
+    max_items: Optional[int] = None,
+    items: Optional[Component] = None,
+    properties: Optional[List[Component]] = None,
+    all_of: Optional[List[Component]] = None,
+    one_of: Optional[List[Component]] = None,
+    ref: Optional[str] = None,
+    max_occurs: Optional[str] = None,
+    min_occurs: Optional[str] = None,
+) -> Component:
+    """Create new component from existing, replacing chosen properties."""
+    return Component(
+        path=path if path else component.path,
+        type=type if type else component.type,
+        title={None: title} if title else component.title,
+        description={None: description} if description else component.description,
+        pattern=pattern if pattern else component.pattern,
+        format=format if format else component.format,
+        required=required if required else component.required,
+        enum=enum if enum else component.enum,
+        minimum=minimum if minimum else component.minimum,
+        maximum=maximum if maximum else component.maximum,
+        exclusive_minimum=exclusive_minimum
+        if exclusive_minimum
+        else component.exclusive_minimum,
+        exclusive_maximum=exclusive_maximum
+        if exclusive_maximum
+        else component.exclusive_maximum,
+        min_length=min_length if min_length else component.min_length,
+        max_length=max_length if max_length else component.max_length,
+        min_items=min_items if min_items else component.min_items,
+        max_items=max_items if max_items else component.max_items,
+        items=items if items else component.items,
+        properties=properties if properties else component.properties,
+        all_of=all_of if all_of else component.all_of,
+        one_of=one_of if one_of else component.one_of,
+        ref=ref if ref else component.ref,
+        max_occurs=max_occurs if max_occurs else component.max_occurs,
+        min_occurs=min_occurs if min_occurs else component.min_occurs,
+    )
