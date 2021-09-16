@@ -1,5 +1,5 @@
 """Pytests."""
-from modelldcatnotordf.modelldcatno import ObjectType, SimpleType
+from modelldcatnotordf.modelldcatno import ObjectType, SimpleType, Specialization
 from pytest_mock import MockerFixture
 from rdflib.graph import Graph
 
@@ -348,11 +348,44 @@ def test_creates_valid_primitive_simple_type(mocker: MockerFixture) -> None:
 
 def test_creates_specialization_property(mocker: MockerFixture) -> None:
     """Tests creation of Specialization model property."""
+    specialiation_identifier = "specialiation_identifier"
+    simple_type_identifier = "simple_type_identifier"
+    type = "string"
+
     mock_component = mocker.MagicMock()
+    mock_component.identifier = specialiation_identifier
+    mock_component.type = type
+    mock_component.format = None
+
     mock_schema = mocker.MagicMock()
-    assert (
-        modelldcatno_factory._create_specialization_property(
-            mock_component, mock_schema
-        )
-        is None
+
+    primitive_simple_type = SimpleType(simple_type_identifier)
+    primitive_simple_type.title = {None: type}
+    primitive_simple_type.type_definition_reference = TYPE_DEFINITION_REFERENCE.get(
+        type
     )
+
+    expected = Specialization(specialiation_identifier)
+    expected.has_general_concept = primitive_simple_type
+
+    mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_identifier",
+        side_effect=[specialiation_identifier, simple_type_identifier],
+    )
+
+    actual = modelldcatno_factory._create_specialization_property(
+        mock_component, mock_schema
+    )
+    actual_general_concept = actual.has_general_concept
+
+    assert actual_general_concept.title == primitive_simple_type.title
+    assert (
+        actual_general_concept.type_definition_reference
+        == primitive_simple_type.type_definition_reference
+    )
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
