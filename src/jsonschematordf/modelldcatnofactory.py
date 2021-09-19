@@ -5,6 +5,7 @@ from datacatalogtordf.exceptions import InvalidURIError
 from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
     Attribute,
+    Choice,
     ModelElement,
     ModelProperty,
     ObjectType,
@@ -153,3 +154,22 @@ def _create_attribute_property(component: Component, schema: Schema) -> Attribut
         attribute.has_simple_type = _create_primitive_simple_type(component, schema)
 
     return attribute
+
+
+def _create_choice_property(component: Component, schema: Schema) -> Attribute:
+    """Create Choice model property."""
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    choice = Choice(identifier)
+    choice.title = component.title
+    choice.description = component.description
+    choice.max_occurs = component.max_occurs
+    choice.min_occurs = component.min_occurs
+    if component.one_of:
+        choice.has_some = [
+            create_model_element(item, schema) for item in component.one_of
+        ]
+
+    return choice
