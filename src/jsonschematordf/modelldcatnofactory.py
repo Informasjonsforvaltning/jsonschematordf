@@ -124,15 +124,14 @@ def _create_primitive_simple_type(component: Component, schema: Schema) -> Simpl
 def _create_specialization_property(
     component: Component, schema: Schema
 ) -> Specialization:
-    """Create Specialization model property. TODO."""
+    """Create Specialization model property."""
     identifier = _create_identifier(component, schema)
     if component.complete_path:
         schema.add_parsed_component(component.complete_path, identifier)
 
-    primitive_simple_type = _create_primitive_simple_type(component, schema)
-
     specialization = Specialization(identifier)
-    if primitive_simple_type:
-        specialization.has_general_concept = primitive_simple_type
+    specialization.has_general_concept = _create_primitive_simple_type(
+        component, schema
+    )
 
     return specialization
