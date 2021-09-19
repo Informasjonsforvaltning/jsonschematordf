@@ -4,6 +4,7 @@ from typing import Optional
 from datacatalogtordf.exceptions import InvalidURIError
 from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
+    Attribute,
     ModelElement,
     ModelProperty,
     ObjectType,
@@ -135,3 +136,20 @@ def _create_specialization_property(
     )
 
     return specialization
+
+
+def _create_attribute_property(component: Component, schema: Schema) -> Attribute:
+    """Create Attribute model property."""
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    attribute = Attribute(identifier)
+    attribute.title = component.title
+    attribute.description = component.description
+    attribute.max_occurs = component.max_occurs
+    attribute.min_occurs = component.min_occurs
+    if component.type or component.format:
+        attribute.has_simple_type = _create_primitive_simple_type(component, schema)
+
+    return attribute

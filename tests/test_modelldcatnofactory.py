@@ -1,5 +1,10 @@
 """Pytests."""
-from modelldcatnotordf.modelldcatno import ObjectType, SimpleType, Specialization
+from modelldcatnotordf.modelldcatno import (
+    Attribute,
+    ObjectType,
+    SimpleType,
+    Specialization,
+)
 from pytest_mock import MockerFixture
 from rdflib.graph import Graph
 
@@ -383,6 +388,54 @@ def test_creates_specialization_property(mocker: MockerFixture) -> None:
     assert (
         actual_general_concept.type_definition_reference
         == primitive_simple_type.type_definition_reference
+    )
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
+
+
+def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
+    """Test that attribute properties are correctly created."""
+    attribute_identifier = "identifier"
+    type = "string"
+    title = {None: "title"}
+    description = {None: "description"}
+    max_occurs = "1"
+    min_occurs = "1"
+
+    mock_component = mocker.MagicMock()
+    mock_component.identifier = attribute_identifier
+    mock_component.title = title
+    mock_component.description = description
+    mock_component.type = type
+    mock_component.format = None
+    mock_component.min_occurs = min_occurs
+    mock_component.max_occurs = max_occurs
+
+    mock_schema = mocker.MagicMock()
+
+    simple_type_identifier = "simple_identifier"
+    simple_type = SimpleType(simple_type_identifier)
+    simple_type.title = {None: type}
+    simple_type.type_definition_reference = TYPE_DEFINITION_REFERENCE.get(type)
+
+    expected = Attribute(attribute_identifier)
+    expected.title = title
+    expected.description = description
+    expected.max_occurs = max_occurs
+    expected.min_occurs = min_occurs
+    expected.has_simple_type = simple_type
+
+    mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_identifier",
+        side_effect=[attribute_identifier, simple_type_identifier],
+    )
+
+    actual = modelldcatno_factory._create_attribute_property(
+        mock_component, mock_schema
     )
 
     g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
