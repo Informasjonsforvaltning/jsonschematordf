@@ -1,5 +1,5 @@
 """ComponentFactory module."""
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from jsonschematordf.component import Component
 from jsonschematordf.types.enums import EMPTY_PATH
@@ -45,15 +45,15 @@ def create_component(
     one_of = json_schema_representation.get("oneOf")
     ref = json_schema_representation.get("$ref")
 
-    if type == "array":
-        max_occurs = str(max_items) if max_items else "*"
+    if type == "array" or one_of:
+        max_occurs: Optional[Union[str, int]] = max_items if max_items else "*"
     else:
-        max_occurs = "1"
+        max_occurs = 1
 
     if title is not None and required is not None and title in required:
-        min_occurs = "1"
+        min_occurs = 1
     else:
-        min_occurs = "0"
+        min_occurs = 0
 
     child_path = f"{path}/{title}" if title else None
 
@@ -129,8 +129,8 @@ def new_from_component(
     all_of: Optional[List[Component]] = None,
     one_of: Optional[List[Component]] = None,
     ref: Optional[str] = None,
-    max_occurs: Optional[str] = None,
-    min_occurs: Optional[str] = None,
+    max_occurs: Optional[Union[str, int]] = None,
+    min_occurs: Optional[int] = None,
 ) -> Component:
     """Create new component from existing, replacing chosen properties."""
     return Component(

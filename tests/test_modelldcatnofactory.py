@@ -1,6 +1,7 @@
 """Pytests."""
 from modelldcatnotordf.modelldcatno import (
     Attribute,
+    Choice,
     ObjectType,
     SimpleType,
     Specialization,
@@ -437,6 +438,51 @@ def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     actual = modelldcatno_factory._create_attribute_property(
         mock_component, mock_schema
     )
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
+
+
+def test_creates_choice_property(mocker: MockerFixture) -> None:
+    """Test that choice properties are correctly created."""
+    identifier = "identifier"
+    title = {None: "title"}
+    description = {None: "description"}
+    min_occurs = "1"
+    max_occurs = "2"
+    one_of_uri = "one_of"
+    one_of = [one_of_uri]
+
+    mock_component = mocker.MagicMock()
+    mock_component.identifier = identifier
+    mock_component.title = title
+    mock_component.description = description
+    mock_component.min_occurs = min_occurs
+    mock_component.max_occurs = max_occurs
+    mock_component.one_of = one_of
+
+    mock_schema = mocker.MagicMock()
+
+    mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_identifier",
+        return_value=identifier,
+    )
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        return_value=one_of_uri,
+    )
+
+    expected = Choice(identifier)
+    expected.title = title
+    expected.description = description
+    expected.has_some = [one_of_uri]
+    expected.min_occurs = min_occurs
+    expected.max_occurs = max_occurs
+
+    actual = modelldcatno_factory._create_choice_property(mock_component, mock_schema)
 
     g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
     g2 = Graph().parse(data=actual.to_rdf(), format="turtle")

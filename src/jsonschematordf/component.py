@@ -1,5 +1,5 @@
 """Component module."""
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from jsonschematordf.types.enums import EMPTY_PATH
 
@@ -54,8 +54,8 @@ class Component:
     _all_of: Optional[List["Component"]]
     _one_of: Optional[List["Component"]]
     _ref: Optional[str]
-    _max_occurs: Optional[str]
-    _min_occurs: Optional[str]
+    _max_occurs: Optional[Union[str, int]]
+    _min_occurs: Optional[int]
 
     def __init__(
         self,
@@ -80,8 +80,8 @@ class Component:
         all_of: Optional[List["Component"]] = None,
         one_of: Optional[List["Component"]] = None,
         ref: Optional[str] = None,
-        max_occurs: Optional[str] = None,
-        min_occurs: Optional[str] = None,
+        max_occurs: Optional[Union[str, int]] = None,
+        min_occurs: Optional[int] = None,
     ) -> None:
         """Constructor for Component object."""
         self._path = path
@@ -253,11 +253,11 @@ class Component:
         return self._ref
 
     @property
-    def max_occurs(self) -> Optional[str]:
+    def max_occurs(self) -> Optional[Union[str, int]]:
         """Getter for ref."""
         return self._max_occurs
 
     @property
-    def min_occurs(self) -> Optional[str]:
+    def min_occurs(self) -> Optional[int]:
         """Getter for ref."""
         return self._min_occurs

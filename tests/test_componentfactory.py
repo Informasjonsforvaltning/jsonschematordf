@@ -105,19 +105,19 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
         path, {"title": title, "required": [title]}
     )
 
-    assert min_one_max_one._min_occurs == "1"
-    assert min_one_max_one._max_occurs == "1"
+    assert min_one_max_one._min_occurs == 1
+    assert min_one_max_one._max_occurs == 1
 
     min_zero_max_multi = component_factory.create_component(path, {"type": "array"})
 
-    assert min_zero_max_multi.min_occurs == "0"
+    assert min_zero_max_multi.min_occurs == 0
     assert min_zero_max_multi.max_occurs == "*"
 
     max_from_max_items = component_factory.create_component(
         path, {"type": "array", "maxItems": 100}
     )
 
-    assert max_from_max_items.max_occurs == "100"
+    assert max_from_max_items.max_occurs == 100
 
 
 def test_componentfactory_returns_component_for_each_type() -> None:

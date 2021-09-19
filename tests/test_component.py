@@ -47,7 +47,7 @@ def test_component_sets_fields_correctly() -> None:
     ]
     ref = "#/path/test"
     max_occurs = "*"
-    min_occurs = "0"
+    min_occurs = 0
 
     component = Component(
         path,
