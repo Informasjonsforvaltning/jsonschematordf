@@ -580,3 +580,46 @@ def test_creates_simple_type_array_property(mocker: MockerFixture) -> None:
     g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
 
     assert_isomorphic(g1, g2)
+
+
+def test_creates_role_property(mocker: MockerFixture) -> None:
+    """Test that role properties are correctly created."""
+    identifier = "identifier"
+    title = {None: "title"}
+    description = {None: "description"}
+    min_occurs = "1"
+    max_occurs = "2"
+    item_identifier = "item_identifier"
+
+    mock_component = mocker.MagicMock()
+    mock_component.identifier = identifier
+    mock_component.title = title
+    mock_component.description = description
+    mock_component.min_occurs = min_occurs
+    mock_component.max_occurs = max_occurs
+
+    mock_schema = mocker.MagicMock()
+
+    mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_identifier",
+        return_value=identifier,
+    )
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        return_value=item_identifier,
+    )
+
+    expected = Role(identifier)
+    expected.title = title
+    expected.description = description
+    expected.min_occurs = min_occurs
+    expected.max_occurs = max_occurs
+    expected.has_object_type = item_identifier
+
+    actual = modelldcatno_factory._create_role_property(mock_component, mock_schema)
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)

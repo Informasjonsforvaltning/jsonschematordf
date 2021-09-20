@@ -210,3 +210,19 @@ def _create_simple_type_array_property(component: Component, schema: Schema) -> 
     )
 
     return array
+
+
+def _create_role_property(component: Component, schema: Schema) -> Role:
+    """Create object array model property."""
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    role = Role(identifier)
+    role.title = component.title
+    role.description = component.description
+    role.max_occurs = component.max_occurs
+    role.min_occurs = component.min_occurs
+    role.has_object_type = create_model_element(component, schema)
+
+    return role
