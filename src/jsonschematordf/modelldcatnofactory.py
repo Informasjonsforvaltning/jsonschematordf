@@ -9,6 +9,7 @@ from modelldcatnotordf.modelldcatno import (
     ModelElement,
     ModelProperty,
     ObjectType,
+    Role,
     SimpleType,
     Specialization,
 )
@@ -173,3 +174,39 @@ def _create_choice_property(component: Component, schema: Schema) -> Attribute:
         ]
 
     return choice
+
+
+def _create_object_array_property(component: Component, schema: Schema) -> Role:
+    """Create object array model property."""
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    array = Role(identifier)
+    array.title = component.title
+    array.description = component.description
+    array.max_occurs = component.max_occurs
+    array.min_occurs = component.min_occurs
+    array.has_object_type = (
+        create_model_element(component.items, schema) if component.items else None
+    )
+
+    return array
+
+
+def _create_simple_type_array_property(component: Component, schema: Schema) -> Role:
+    """Create simple type array model property."""
+    identifier = _create_identifier(component, schema)
+    if component.complete_path:
+        schema.add_parsed_component(component.complete_path, identifier)
+
+    array = Attribute(identifier)
+    array.title = component.title
+    array.description = component.description
+    array.max_occurs = component.max_occurs
+    array.min_occurs = component.min_occurs
+    array.has_simple_type = (
+        create_model_element(component.items, schema) if component.items else None
+    )
+
+    return array
