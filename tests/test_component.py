@@ -48,6 +48,11 @@ def test_component_sets_fields_correctly() -> None:
     ref = "#/path/test"
     max_occurs = "*"
     min_occurs = 0
+    specializes = Component(
+        "#/path/title",
+        title={None: "specializes"},
+        description={None: "specializes_description"},
+    )
 
     component = Component(
         path,
@@ -73,6 +78,7 @@ def test_component_sets_fields_correctly() -> None:
         ref,
         max_occurs,
         min_occurs,
+        specializes,
     )
 
     assert component.path == path
@@ -99,6 +105,7 @@ def test_component_sets_fields_correctly() -> None:
     assert component.ref == ref
     assert component.max_occurs == max_occurs
     assert component.min_occurs == min_occurs
+    assert component.specializes == specializes
 
 
 def test_complete_path_returns_none_for_missing_title() -> None:
@@ -107,3 +114,15 @@ def test_complete_path_returns_none_for_missing_title() -> None:
     component = Component(path)
 
     assert component.complete_path is None
+
+
+def test_identifier_set_and_get() -> None:
+    """Test that identifier can be set and gotten."""
+    identifier = "identifier"
+    component = Component("#")
+
+    assert component.identifier is None
+
+    component.identifier = identifier
+
+    assert component.identifier == identifier

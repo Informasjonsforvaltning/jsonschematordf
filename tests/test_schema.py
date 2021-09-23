@@ -2,6 +2,7 @@
 from datacatalogtordf.exceptions import InvalidURIError
 from datacatalogtordf.uri import URI
 import pytest
+from pytest_mock import MockerFixture
 
 from jsonschematordf.component import Component
 from jsonschematordf.schema import Schema
@@ -110,41 +111,55 @@ def test_unused_path__returns_empty_list() -> None:
     assert components == []
 
 
-def test_parsed_components_get_and_set() -> None:
+def test_parsed_components_get_and_set(mocker: MockerFixture) -> None:
     """Test getting and setting of parsed components."""
     base_uri = "https://uri.com"
-    path = "#/path/to/component"
-    identifer = "https://uri.com#Test"
+    complete_path = "/path/to/component#Test"
+    identifier = f"{base_uri}{complete_path}"
+
+    mock_component = mocker.MagicMock()
+    mock_component.complete_path = complete_path
+    mock_component.identifier = identifier
 
     schema = Schema(base_uri, {})
 
-    schema.add_parsed_component(path, identifer)
+    schema.add_parsed_component(mock_component)
 
-    component = schema.get_parsed_component(path)
+    component_uri = schema.get_parsed_component_uri(complete_path)
 
-    assert component == identifer
+    assert component_uri == identifier
 
 
-def test_parsed_component_collision_throws_exceptions() -> None:
+def test_parsed_component_collision_throws_exceptions(mocker: MockerFixture) -> None:
     """Test that collisions in parsed component cache throws exception."""
     with pytest.raises(ComponentAlreadyExistsException):
         base_uri = "https://uri.com"
-        path = "#/path/to/component"
-        identifer = "test"
+        complete_path = "/path/to/component#Test"
+        identifier = f"{base_uri}{complete_path}"
+
+        mock_component = mocker.MagicMock()
+        mock_component.complete_path = complete_path
+        mock_component.identifier = identifier
 
         schema = Schema(base_uri, {})
 
-        schema.add_parsed_component(path, identifer)
-        schema.add_parsed_component(path, identifer)
+        schema.add_parsed_component(mock_component)
+        schema.add_parsed_component(mock_component)
 
 
-def test_set_parsed_component_with_invalid_uri_throws_exception() -> None:
+def test_set_parsed_component_with_invalid_uri_throws_exception(
+    mocker: MockerFixture,
+) -> None:
     """Test set parsed component with invalid uri raises InvalidURIError."""
     with pytest.raises(InvalidURIError):
         base_uri = "https://uri.com"
-        path = "#/path/to/component"
-        identifer = "<>"
+        complete_path = "/path/to/component#Test"
+        identifier = "<><>"
+
+        mock_component = mocker.MagicMock()
+        mock_component.complete_path = complete_path
+        mock_component.identifier = identifier
 
         schema = Schema(base_uri, {})
 
-        schema.add_parsed_component(path, identifer)
+        schema.add_parsed_component(mock_component)

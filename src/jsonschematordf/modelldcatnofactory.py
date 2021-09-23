@@ -1,5 +1,5 @@
 """ModelldcatnoFactory module."""
-from typing import Optional
+from typing import Optional, Union
 
 from datacatalogtordf.exceptions import InvalidURIError
 from datacatalogtordf.uri import URI
@@ -16,23 +16,110 @@ from modelldcatnotordf.modelldcatno import (
 from skolemizer import Skolemizer
 
 from jsonschematordf.component import Component
-import jsonschematordf.componentfactory as component_factory
 from jsonschematordf.schema import Schema
 from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
-from jsonschematordf.types.enums import EMPTY_PATH
+from jsonschematordf.types.enums import (
+    CHOICE,
+    EMPTY_PATH,
+    OBJECT_ARRAY,
+    OBJECT_TYPE,
+    PRIMITIVE_SIMPLE_TYPE,
+    SIMPLE_TYPE,
+    SIMPLE_TYPE_ARRAY,
+    SPECIALIZES,
+)
 
 
 def create_model_property(
     component: Component, schema: Schema
-) -> Optional[ModelProperty]:
-    """TODO Create modelldcatno property component for JSON Schema Component."""
+) -> Optional[Union[ModelProperty, URI]]:
+    """Create modelldcatno property component for JSON Schema Component."""
+    if parsed_component_uri := schema.get_parsed_component_uri(component.complete_path):
+        return parsed_component_uri
+
+    component.identifier = _create_identifier(component, schema)
+    schema.add_parsed_component(component)
+    component_type = _determine_component_type(component, schema)
+
+    if component_type == OBJECT_TYPE:
+        return _create_role_property(component, schema)
+    if component_type == SIMPLE_TYPE:
+        return _create_attribute_property(component, schema)
+    if component_type == CHOICE:
+        return _create_choice_property(component, schema)
+    if component_type == SPECIALIZES:
+        return _create_specialization_property(component, schema)
+    if component_type == OBJECT_ARRAY:
+        return _create_object_array_property(component, schema)
+    if component_type == SIMPLE_TYPE_ARRAY:
+        return _create_simple_type_array_property(component, schema)
     return None
 
 
 def create_model_element(
     component: Component, schema: Schema
-) -> Optional[ModelElement]:
-    """TODO Create modelldcatno element component for JSON Schema Component."""
+) -> Optional[Union[ModelElement, URI]]:
+    """Create modelldcatno element component for JSON Schema Component."""
+    if parsed_component_uri := schema.get_parsed_component_uri(component.complete_path):
+        return parsed_component_uri
+
+    component.identifier = _create_identifier(component, schema)
+    schema.add_parsed_component(component)
+    component_type = _determine_component_type(component, schema)
+
+    if component_type == OBJECT_TYPE:
+        return _create_object_type(component, schema)
+    if component_type == SIMPLE_TYPE:
+        return _create_simple_type(component, schema)
+    if component_type == PRIMITIVE_SIMPLE_TYPE:
+        return _create_primitive_simple_type(component)
+    return None
+
+
+def _determine_component_type(component: Component, schema: Schema) -> Optional[str]:
+    """Determine type of json schema component."""
+    ref_type = _determine_ref_type(component.ref, schema)
+
+    if component.type == "object" or ref_type == "object":
+        return OBJECT_TYPE
+    if (
+        component.type in TYPE_DEFINITION_REFERENCE.keys()
+        or ref_type in TYPE_DEFINITION_REFERENCE.keys()
+    ):
+        if (
+            component.title
+            or component.description
+            or component.pattern
+            or component.min_length
+            or component.max_length
+            or component.minimum
+            or component.exclusive_minimum
+            or component.maximum
+            or component.exclusive_maximum
+        ):
+            return SIMPLE_TYPE
+        if component.format:
+            return PRIMITIVE_SIMPLE_TYPE
+    if component.items:
+        items_type = _determine_component_type(component.items, schema)
+        if items_type == OBJECT_TYPE:
+            return OBJECT_ARRAY
+        if items_type == SIMPLE_TYPE:
+            return SIMPLE_TYPE_ARRAY
+    if component.specializes:
+        return SPECIALIZES
+    if component.one_of:
+        return CHOICE
+
+    return None
+
+
+def _determine_ref_type(ref: Optional[str], schema: Schema) -> Optional[str]:
+    """Determine type of referenced schema."""
+    if ref:
+        referenced_component = schema.get_components_by_path(ref)
+        if isinstance(referenced_component, Component):
+            return referenced_component.type
     return None
 
 
@@ -49,11 +136,7 @@ def _create_identifier(component: Component, schema: Schema) -> URI:
 
 def _create_object_type(component: Component, schema: Schema) -> ObjectType:
     """Create object type."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    object_type = ObjectType(identifier)
+    object_type = ObjectType(component.identifier)
     object_type.title = component.title
     object_type.description = component.description
 
@@ -68,11 +151,7 @@ def _create_object_type(component: Component, schema: Schema) -> ObjectType:
 
 def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
     """Create simple type."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    simple_type = SimpleType(identifier)
+    simple_type = SimpleType(component.identifier)
     simple_type.title = component.title
     simple_type.description = component.description
     simple_type.pattern = component.pattern
@@ -92,33 +171,28 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
             simple_type.max_inclusive = component.maximum
 
     if component.title and (component.type or component.format):
-        specialization_component = component_factory.new_from_component(
-            component, path=component.path + "/specializes"
+        primitive_simple_type = Component(
+            EMPTY_PATH, format=component.format, type=component.type
         )
+        specialization_component = Component(
+            component.path + "/specializes", specializes=primitive_simple_type
+        )
+
         simple_type.has_property = [
-            _create_specialization_property(specialization_component, schema)
+            create_model_property(specialization_component, schema)
         ]
 
     return simple_type
 
 
-def _create_primitive_simple_type(component: Component, schema: Schema) -> SimpleType:
+def _create_primitive_simple_type(component: Component) -> SimpleType:
     """Create primitive global simple type based on format or type."""
-    primitive_component = component_factory.create_component(
-        EMPTY_PATH,
-        {
-            "title": component.format if component.format else component.type,
-            "type": component.type,
-        },
-    )
-    identifier = _create_identifier(primitive_component, schema)
-    if primitive_component.complete_path:
-        schema.add_parsed_component(primitive_component.complete_path, identifier)
+    title = component.format if component.format else component.type
 
-    simple_type = SimpleType(identifier)
-    simple_type.title = primitive_component.title
+    simple_type = SimpleType(component.identifier)
+    simple_type.title = {None: title} if title else None
 
-    if type_reference := TYPE_DEFINITION_REFERENCE.get(primitive_component.type):
+    if type_reference := TYPE_DEFINITION_REFERENCE.get(component.type):
         simple_type.type_definition_reference = type_reference
 
     return simple_type
@@ -128,42 +202,31 @@ def _create_specialization_property(
     component: Component, schema: Schema
 ) -> Specialization:
     """Create Specialization model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    specialization = Specialization(identifier)
-    specialization.has_general_concept = _create_primitive_simple_type(
-        component, schema
-    )
+    specialization = Specialization(component.identifier)
+    if component.specializes:
+        specialization.has_general_concept = create_model_element(
+            component.specializes, schema
+        )
 
     return specialization
 
 
 def _create_attribute_property(component: Component, schema: Schema) -> Attribute:
     """Create Attribute model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    attribute = Attribute(identifier)
+    attribute = Attribute(component.identifier)
     attribute.title = component.title
     attribute.description = component.description
     attribute.max_occurs = component.max_occurs
     attribute.min_occurs = component.min_occurs
     if component.type or component.format:
-        attribute.has_simple_type = _create_primitive_simple_type(component, schema)
+        attribute.has_simple_type = create_model_element(component, schema)
 
     return attribute
 
 
 def _create_choice_property(component: Component, schema: Schema) -> Attribute:
     """Create Choice model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    choice = Choice(identifier)
+    choice = Choice(component.identifier)
     choice.title = component.title
     choice.description = component.description
     choice.max_occurs = component.max_occurs
@@ -178,11 +241,7 @@ def _create_choice_property(component: Component, schema: Schema) -> Attribute:
 
 def _create_object_array_property(component: Component, schema: Schema) -> Role:
     """Create object array model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    array = Role(identifier)
+    array = Role(component.identifier)
     array.title = component.title
     array.description = component.description
     array.max_occurs = component.max_occurs
@@ -194,13 +253,11 @@ def _create_object_array_property(component: Component, schema: Schema) -> Role:
     return array
 
 
-def _create_simple_type_array_property(component: Component, schema: Schema) -> Role:
+def _create_simple_type_array_property(
+    component: Component, schema: Schema
+) -> Attribute:
     """Create simple type array model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    array = Attribute(identifier)
+    array = Attribute(component.identifier)
     array.title = component.title
     array.description = component.description
     array.max_occurs = component.max_occurs
@@ -214,11 +271,7 @@ def _create_simple_type_array_property(component: Component, schema: Schema) -> 
 
 def _create_role_property(component: Component, schema: Schema) -> Role:
     """Create object array model property."""
-    identifier = _create_identifier(component, schema)
-    if component.complete_path:
-        schema.add_parsed_component(component.complete_path, identifier)
-
-    role = Role(identifier)
+    role = Role(component.identifier)
     role.title = component.title
     role.description = component.description
     role.max_occurs = component.max_occurs
