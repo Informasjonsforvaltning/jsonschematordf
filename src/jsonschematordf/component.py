@@ -1,6 +1,8 @@
 """Component module."""
 from typing import Dict, List, Optional, Union
 
+from datacatalogtordf.uri import URI
+
 from jsonschematordf.types.enums import EMPTY_PATH
 
 
@@ -8,6 +10,7 @@ class Component:
     """Utility class representing a JSON Schema component."""
 
     __slots__ = (
+        "_identifier",
         "_path",
         "_type",
         "_title",
@@ -31,6 +34,7 @@ class Component:
         "_ref",
         "_max_occurs",
         "_min_occurs",
+        "_specializes",
     )
 
     _path: str
@@ -56,6 +60,8 @@ class Component:
     _ref: Optional[str]
     _max_occurs: Optional[Union[str, int]]
     _min_occurs: Optional[int]
+    _identifier: Optional[URI]
+    _specializes: Optional["Component"]
 
     def __init__(
         self,
@@ -82,8 +88,10 @@ class Component:
         ref: Optional[str] = None,
         max_occurs: Optional[Union[str, int]] = None,
         min_occurs: Optional[int] = None,
+        specializes: Optional["Component"] = None,
     ) -> None:
         """Constructor for Component object."""
+        self.identifier = None
         self._path = path
         self._type = type
         self._title = title
@@ -107,6 +115,7 @@ class Component:
         self._ref = ref
         self._max_occurs = max_occurs
         self._min_occurs = min_occurs
+        self._specializes = specializes
 
     def __eq__(self, o: object) -> bool:
         """Evaluate equality between Component and other object."""
@@ -135,7 +144,18 @@ class Component:
             and self.ref == o.ref
             and self.max_occurs == o.max_occurs
             and self.min_occurs == o.min_occurs
+            and self.specializes == o.specializes
         )
+
+    @property
+    def identifier(self) -> Optional[str]:
+        """Getter for identifier."""
+        return self._identifier
+
+    @identifier.setter
+    def identifier(self, uri: Optional[URI]) -> None:
+        """Setter for identifier."""
+        self._identifier = uri
 
     @property
     def complete_path(self) -> Optional[str]:
@@ -261,3 +281,8 @@ class Component:
     def min_occurs(self) -> Optional[int]:
         """Getter for ref."""
         return self._min_occurs
+
+    @property
+    def specializes(self) -> Optional["Component"]:
+        """Getter for identifier."""
+        return self._specializes

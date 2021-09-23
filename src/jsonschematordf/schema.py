@@ -52,17 +52,22 @@ class Schema:
             pass
         return []
 
-    def add_parsed_component(
-        self, complete_path: str, component_identifier: URI
-    ) -> None:
+    def add_parsed_component(self, component: Component) -> None:
         """Add a modelldcatno component or URI to parsed components cache."""
-        if self.__parsed_components_cache.get(complete_path) is None:
-            self.__parsed_components_cache[complete_path] = URI(component_identifier)
-        else:
+        if (
+            component.complete_path
+            and self.__parsed_components_cache.get(component.complete_path) is None
+        ):
+            self.__parsed_components_cache[component.complete_path] = URI(
+                component.identifier
+            )
+        elif component.complete_path and self.__parsed_components_cache.get(
+            component.complete_path
+        ):
             raise ComponentAlreadyExistsException(
-                f"Component at {complete_path} already exists."
+                f"Component at {component.complete_path} already exists."
             )
 
-    def get_parsed_component(self, path: str) -> Optional[URI]:
+    def get_parsed_component_uri(self, path: Optional[str]) -> Optional[URI]:
         """Get a modelldcatno component or URI from parsed components cache."""
-        return self.__parsed_components_cache.get(path)
+        return self.__parsed_components_cache.get(path) if path else None
