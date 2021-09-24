@@ -1,7 +1,9 @@
 """Pytests."""
+from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
     Attribute,
     Choice,
+    ModelElement,
     ObjectType,
     Role,
     SimpleType,
@@ -13,13 +15,13 @@ from rdflib.graph import Graph
 from jsonschematordf.component import Component
 import jsonschematordf.modelldcatnofactory as modelldcatno_factory
 from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
+from jsonschematordf.types.enums import EXTERNAL_REFERENCE, RECURSIVE_REFERENCE
 from tests.testutils import assert_isomorphic
 
 
 def test_create_model_property(mocker: MockerFixture) -> None:
     """Test that create_model_property returns correct property type."""
     mock_component = mocker.MagicMock()
-    mock_component.ref = None
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
@@ -83,7 +85,7 @@ def test_create_model_element(mocker: MockerFixture) -> None:
     mock_component.ref = None
 
     mock_schema = mocker.MagicMock()
-    mocker.patch.object(mock_schema, "get_parsed_component", return_value=None)
+    mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
 
     mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
     mocker.patch("jsonschematordf.modelldcatnofactory._create_identifier",)
@@ -119,6 +121,184 @@ def test_create_model_element(mocker: MockerFixture) -> None:
     mock_component.exclusive_maximum = None
     modelldcatno_factory.create_model_element(mock_component, mock_schema)
     primitive_simple_type_creator_mock.assert_called_once()
+
+
+def test_create_model_element_resolves_ref(mocker: MockerFixture) -> None:
+    """Create model element should resolve referenced component."""
+    ref_identifier = "identifier"
+
+    mock_component = mocker.MagicMock()
+
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._resolve_component_reference",
+        return_value=ref_identifier,
+    )
+
+    assert (
+        modelldcatno_factory.create_model_element(mock_component, mock_schema)
+        == ref_identifier
+    )
+
+
+def test_resolve_component_reference_resolves_recursive_reference(
+    mocker: MockerFixture,
+) -> None:
+    """Returns result of recursive reference resolution."""
+    mock_reference = mocker.MagicMock()
+    mock_schema = mocker.MagicMock()
+    expected = "identifier"
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._resolve_recursive_reference",
+        return_value=expected,
+    )
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.determine_reference_type",
+        return_value=RECURSIVE_REFERENCE,
+    )
+    assert (
+        modelldcatno_factory._resolve_component_reference(mock_reference, mock_schema)
+        == expected
+    )
+
+
+def test_resolve_component_reference_resolves_external_reference(
+    mocker: MockerFixture,
+) -> None:
+    """Returns URI of external reference."""
+    mock_reference = mocker.MagicMock()
+    mock_schema = mocker.MagicMock()
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.determine_reference_type",
+        return_value=EXTERNAL_REFERENCE,
+    )
+    assert (
+        modelldcatno_factory._resolve_component_reference(mock_reference, mock_schema)
+        == mock_reference
+    )
+
+
+def test_resolve_component_reference_returns_none(mocker: MockerFixture) -> None:
+    """Returns None if reference cannot be resolved."""
+    mock_reference = mocker.MagicMock()
+    mock_schema = mocker.MagicMock()
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.determine_reference_type",
+        return_value="None",
+    )
+    assert (
+        modelldcatno_factory._resolve_component_reference(mock_reference, mock_schema)
+        is None
+    )
+
+
+def test_resolve_recursive_reference_returns_and_adds_orphan(
+    mocker: MockerFixture,
+) -> None:
+    """Returns first referenced component and adds orphans to schema."""
+    component = mocker.MagicMock(spec=ModelElement)
+    orphan = mocker.MagicMock(spec=ModelElement)
+    model_element_uris = [None, component, None, orphan]
+
+    object_creator_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        side_effect=model_element_uris,
+    )
+
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(
+        mock_schema,
+        "get_components_by_path",
+        return_value=range(len(model_element_uris)),
+    )
+    add_orphan_mock = mocker.patch.object(mock_schema, "add_orphan_elements")
+
+    actual = modelldcatno_factory._resolve_recursive_reference("ref", mock_schema)
+
+    object_creator_mock.assert_called()
+    add_orphan_mock.assert_called_once_with([orphan])
+    assert actual == component
+
+
+def test_resolve_recursive_reference_returns_single_element_without_adding_orphans(
+    mocker: MockerFixture,
+) -> None:
+    """Returns only referenced component, adding no orphans to schema.."""
+    component = mocker.MagicMock(spec=ModelElement)
+    model_element_uris = [component, None, None, None]
+
+    object_creator_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        side_effect=model_element_uris,
+    )
+
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(
+        mock_schema,
+        "get_components_by_path",
+        return_value=range(len(model_element_uris)),
+    )
+    add_orphan_mock = mocker.patch.object(mock_schema, "add_orphan_elements")
+
+    actual = modelldcatno_factory._resolve_recursive_reference("ref", mock_schema)
+
+    object_creator_mock.assert_called()
+    add_orphan_mock.assert_not_called()
+    assert actual == component
+
+
+def test_resolve_recursive_reference_returns_uri(mocker: MockerFixture,) -> None:
+    """Returns only referenced component, adding no orphans to schema."""
+    component = mocker.MagicMock(spec=URI)
+    model_element_uris = [None, None, None, component]
+
+    object_creator_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        side_effect=model_element_uris,
+    )
+
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(
+        mock_schema,
+        "get_components_by_path",
+        return_value=range(len(model_element_uris)),
+    )
+    add_orphan_mock = mocker.patch.object(mock_schema, "add_orphan_elements")
+
+    actual = modelldcatno_factory._resolve_recursive_reference("ref", mock_schema)
+
+    object_creator_mock.assert_called()
+    add_orphan_mock.assert_not_called()
+    assert actual == component
+
+
+def test_resolve_recursive_reference_returns_none(mocker: MockerFixture,) -> None:
+    """Returns None if no elements are created or resolved."""
+    model_element_uris = [None, None, None]
+
+    object_creator_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        side_effect=model_element_uris,
+    )
+
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(
+        mock_schema,
+        "get_components_by_path",
+        return_value=range(len(model_element_uris)),
+    )
+    add_orphan_mock = mocker.patch.object(mock_schema, "add_orphan_elements")
+
+    actual = modelldcatno_factory._resolve_recursive_reference("ref", mock_schema)
+
+    object_creator_mock.assert_called()
+    add_orphan_mock.assert_not_called()
+    assert actual is None
 
 
 def test_creators_returns_already_parsed_components(mocker: MockerFixture) -> None:
