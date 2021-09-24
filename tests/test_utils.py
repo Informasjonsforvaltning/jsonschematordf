@@ -2,7 +2,11 @@
 
 import pytest
 
-from jsonschematordf.utils import nested_get
+from jsonschematordf.types.enums import (
+    EXTERNAL_REFERENCE,
+    RECURSIVE_REFERENCE,
+)
+from jsonschematordf.utils import determine_reference_type, nested_get
 
 
 def test_nested_get_retrieves_correct_entry() -> None:
@@ -23,3 +27,28 @@ def test_nested_get_throws_for_no_keys() -> None:
     with pytest.raises(TypeError):
         dictionary = {"a": {"b": {"c": "d"}}}
         nested_get(dictionary)
+
+
+def test_determine_reference_type_recursive() -> None:
+    """Should return recursive reference type."""
+    reference = "#/test"
+    assert determine_reference_type(reference) == RECURSIVE_REFERENCE
+
+
+def test_determine_reference_type_external() -> None:
+    """Should return external reference type."""
+    reference = "http://uri.com#test"
+    assert determine_reference_type(reference) == EXTERNAL_REFERENCE
+
+
+def test_determine_reference_type_none() -> None:
+    """Should return None."""
+    reference = "test"
+    assert determine_reference_type(reference) is None
+    assert determine_reference_type(None) is None
+
+
+def test_invalid_uri_should_return_none() -> None:
+    """Invalid URI should raise exception."""
+    reference = "http://uri<.com"
+    determine_reference_type(reference)

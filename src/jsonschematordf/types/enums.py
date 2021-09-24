@@ -9,3 +9,6 @@ CHOICE = "choice"
 OBJECT_ARRAY = "object_array"
 SIMPLE_TYPE_ARRAY = "simple_type_array"
 SPECIALIZES = "specializes"
+
+RECURSIVE_REFERENCE = "recursive_reference"
+EXTERNAL_REFERENCE = "external_reference"

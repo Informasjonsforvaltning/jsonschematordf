@@ -21,13 +21,16 @@ from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
 from jsonschematordf.types.enums import (
     CHOICE,
     EMPTY_PATH,
+    EXTERNAL_REFERENCE,
     OBJECT_ARRAY,
     OBJECT_TYPE,
     PRIMITIVE_SIMPLE_TYPE,
+    RECURSIVE_REFERENCE,
     SIMPLE_TYPE,
     SIMPLE_TYPE_ARRAY,
     SPECIALIZES,
 )
+from jsonschematordf.utils import determine_reference_type
 
 
 def create_model_property(
@@ -62,6 +65,8 @@ def create_model_element(
     """Create modelldcatno element component for JSON Schema Component."""
     if parsed_component_uri := schema.get_parsed_component_uri(component.complete_path):
         return parsed_component_uri
+    if component.ref:
+        return _resolve_component_reference(component.ref, schema)
 
     component.identifier = _create_identifier(component, schema)
     schema.add_parsed_component(component)
@@ -74,6 +79,46 @@ def create_model_element(
     if component_type == PRIMITIVE_SIMPLE_TYPE:
         return _create_primitive_simple_type(component)
     return None
+
+
+def _resolve_component_reference(
+    reference: str, schema: Schema
+) -> Optional[Union[ModelElement, URI]]:
+    """Resolve component reference."""
+    reference_type = determine_reference_type(reference)
+    if reference_type == RECURSIVE_REFERENCE:
+        return _resolve_recursive_reference(reference, schema)
+    if reference_type == EXTERNAL_REFERENCE:
+        return reference
+    return None
+
+
+def _resolve_recursive_reference(
+    ref: str, schema: Schema
+) -> Optional[Union[ModelElement, URI]]:
+    """Resolve recursive component reference and handle orphans."""
+    reference_components = schema.get_components_by_path(ref)
+
+    model_elements = []
+    uri = None
+
+    for component in reference_components:
+        element = create_model_element(component, schema)
+        if isinstance(element, ModelElement):
+            model_elements.append(element)
+        if isinstance(element, URI):
+            uri = element
+
+    if len(model_elements) > 1:
+        first_element, *orphans = model_elements
+        schema.add_orphan_elements(orphans)
+        return first_element
+    elif len(model_elements) == 1:
+        return model_elements[0]
+    elif uri is not None:
+        return uri
+    else:
+        return None
 
 
 def _determine_component_type(component: Component, schema: Schema) -> Optional[str]:
