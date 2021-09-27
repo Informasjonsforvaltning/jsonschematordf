@@ -33,15 +33,11 @@ def test_recursive_path_returns_component() -> None:
     component_title = "title"
     component_type = ["string"]
 
-    json_schema = {
-        "path": {
-            "to": {"component": {"title": component_title, "type": component_type}}
-        }
-    }
+    json_schema = {"path": {"to": {component_title: {"type": component_type}}}}
 
     schema = Schema(base_uri, json_schema)
 
-    components = schema.get_components_by_path("#/path/to/component")
+    components = schema.get_components_by_path(f"#/path/to/{component_title}")
 
     assert len(components) == 1
 
