@@ -1,4 +1,5 @@
 """Component module."""
+from copy import deepcopy
 from typing import Dict, List, Optional, Union
 
 from datacatalogtordf.uri import URI
@@ -146,6 +147,42 @@ class Component:
             and self.min_occurs == o.min_occurs
             and self.specializes == o.specializes
         )
+
+    def copy(self, omit: Optional[List[str]] = None) -> "Component":
+        """Copy Component and optionally omit fields."""
+        if omit is None:
+            return deepcopy(self)
+        else:
+            return Component(
+                path=self.path if "path" not in omit else EMPTY_PATH,
+                type=self.type if "type" not in omit else None,
+                title=self.title if "title" not in omit else None,
+                description=self.description if "description" not in omit else None,
+                pattern=self.pattern if "pattern" not in omit else None,
+                format=self.format if "format" not in omit else None,
+                required=self.required if "required" not in omit else None,
+                enum=self.enum if "enum" not in omit else None,
+                minimum=self.minimum if "minimum" not in omit else None,
+                maximum=self.maximum if "maximum" not in omit else None,
+                exclusive_minimum=self.exclusive_minimum
+                if "exclusive_minimum" not in omit
+                else None,
+                exclusive_maximum=self.exclusive_maximum
+                if "exclusive_maximum" not in omit
+                else None,
+                min_length=self.min_length if "min_length" not in omit else None,
+                max_length=self.max_length if "max_length" not in omit else None,
+                min_items=self.min_items if "min_items" not in omit else None,
+                max_items=self.max_items if "max_items" not in omit else None,
+                items=self.items if "items" not in omit else None,
+                properties=self.properties if "properties" not in omit else None,
+                all_of=self.all_of if "all_of" not in omit else None,
+                one_of=self.one_of if "one_of" not in omit else None,
+                ref=self.ref if "ref" not in omit else None,
+                max_occurs=self.max_occurs if "max_occurs" not in omit else None,
+                min_occurs=self.min_occurs if "min_occurs" not in omit else None,
+                specializes=self.specializes if "specializes" not in omit else None,
+            )
 
     @property
     def identifier(self) -> Optional[str]:

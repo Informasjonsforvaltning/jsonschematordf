@@ -3,6 +3,8 @@ from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
     Attribute,
     Choice,
+    CodeElement,
+    CodeList,
     ModelElement,
     ObjectType,
     Role,
@@ -22,6 +24,21 @@ from tests.testutils import assert_isomorphic
 def test_create_model_property(mocker: MockerFixture) -> None:
     """Test that create_model_property returns correct property type."""
     mock_component = mocker.MagicMock()
+    mock_component.description = None
+    mock_component.enum = None
+    mock_component.exclusive_maximum = None
+    mock_component.exclusive_minimum = None
+    mock_component.format = None
+    mock_component.items = None
+    mock_component.max_length = None
+    mock_component.maximum = None
+    mock_component.min_length = None
+    mock_component.minimum = None
+    mock_component.one_of = None
+    mock_component.pattern = None
+    mock_component.specializes = None
+    mock_component.title = None
+    mock_component.type = None
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
@@ -51,37 +68,59 @@ def test_create_model_property(mocker: MockerFixture) -> None:
     mock_component.type = "object"
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     role_creator_mock.assert_called_once()
+    mock_component.type = None
 
     mock_component.type = "string"
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     attribute_creator_mock.assert_called_once()
-
     mock_component.type = None
-    mock_component.items = None
-    mock_component.specializes = None
+
     mock_component.one_of = [mocker.MagicMock()]
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     choice_creator_mock.assert_called_once()
+    mock_component.one_of = None
 
     mock_component.specializes = mocker.MagicMock()
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     specialization_creator_mock.assert_called_once()
-
     mock_component.specializes = None
+
     items_mock = mocker.MagicMock()
     items_mock.type = "object"
+    items_mock.items = None
+    items_mock.specializes = None
+    items_mock.one_of = None
+    items_mock.enum = None
     mock_component.items = items_mock
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     object_array_creator_mock.assert_called_once()
+    mock_component.items = None
 
     items_mock.type = "string"
+    mock_component.items = items_mock
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     simple_type_array_creator_mock.assert_called_once()
+    mock_component.items = None
 
 
 def test_create_model_element(mocker: MockerFixture) -> None:
     """Test that create_model_element returns correct element type."""
     mock_component = mocker.MagicMock()
+    mock_component.description = None
+    mock_component.enum = None
+    mock_component.exclusive_maximum = None
+    mock_component.exclusive_minimum = None
+    mock_component.format = None
+    mock_component.items = None
+    mock_component.max_length = None
+    mock_component.maximum = None
+    mock_component.min_length = None
+    mock_component.minimum = None
+    mock_component.one_of = None
+    mock_component.pattern = None
+    mock_component.specializes = None
+    mock_component.title = None
+    mock_component.type = None
     mock_component.ref = None
 
     mock_schema = mocker.MagicMock()
@@ -99,28 +138,33 @@ def test_create_model_element(mocker: MockerFixture) -> None:
     primitive_simple_type_creator_mock = mocker.patch(
         "jsonschematordf.modelldcatnofactory._create_primitive_simple_type",
     )
+    code_list_creator_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_code_list",
+    )
 
     mock_component.type = "object"
     modelldcatno_factory.create_model_element(mock_component, mock_schema)
     object_creator_mock.assert_called_once()
+    mock_component.type = None
 
     mock_component.type = "string"
+    mock_component.title = {None: "title"}
     modelldcatno_factory.create_model_element(mock_component, mock_schema)
     simple_type_creator_mock.assert_called_once()
+    mock_component.type = None
+    mock_component.title = None
 
     mock_component.type = "string"
     mock_component.format = "datetime"
-    mock_component.title = None
-    mock_component.description = None
-    mock_component.pattern = None
-    mock_component.min_length = None
-    mock_component.max_length = None
-    mock_component.minimum = None
-    mock_component.exclusive_minimum = None
-    mock_component.maximum = None
-    mock_component.exclusive_maximum = None
     modelldcatno_factory.create_model_element(mock_component, mock_schema)
     primitive_simple_type_creator_mock.assert_called_once()
+    mock_component.type = None
+    mock_component.format = None
+
+    mock_component.enum = ["test"]
+    modelldcatno_factory.create_model_element(mock_component, mock_schema)
+    code_list_creator_mock.assert_called_once()
+    mock_component.enum = None
 
 
 def test_create_model_element_resolves_ref(mocker: MockerFixture) -> None:
@@ -330,11 +374,22 @@ def test_invalid_component_returns_no_element_or_property(
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
 
     mock_component = mocker.MagicMock()
+    mock_component.description = None
+    mock_component.enum = None
+    mock_component.exclusive_maximum = None
+    mock_component.exclusive_minimum = None
+    mock_component.format = None
+    mock_component.items = None
+    mock_component.max_length = None
+    mock_component.maximum = None
+    mock_component.min_length = None
+    mock_component.minimum = None
+    mock_component.one_of = None
+    mock_component.pattern = None
+    mock_component.specializes = None
+    mock_component.title = None
     mock_component.type = None
     mock_component.ref = None
-    mock_component.items = None
-    mock_component.specializes = None
-    mock_component.one_of = None
 
     assert (
         modelldcatno_factory.create_model_element(mock_component, mock_schema) is None
@@ -362,14 +417,13 @@ def test_create_valid_identifier(mocker: MockerFixture) -> None:
     title = "title"
     component_path = "components/schemas"
     base_uri = "http://uri.com"
-    mock_component = mocker.MagicMock()
-    mock_component.complete_path = f"{component_path}#{title}"
+    complete_path = f"{component_path}#{title}"
 
     mock_schema = mocker.MagicMock()
     mock_schema.base_uri = base_uri
 
     expected = f"{base_uri}/{component_path}#{title}"
-    actual = modelldcatno_factory._create_identifier(mock_component, mock_schema)
+    actual = modelldcatno_factory._create_identifier(complete_path, mock_schema)
 
     assert expected == actual
 
@@ -614,6 +668,66 @@ def test_creates_valid_primitive_simple_type(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+def test_create_code_list(mocker: MockerFixture) -> None:
+    """Code Lists are correctly created and and code elements added to orphan graph."""
+    identifier = "identifier"
+    title = {None: "title"}
+    description = {None: "description"}
+    enum = ["1", "2", "3"]
+
+    mock_component = mocker.MagicMock()
+    mock_component.identifier = identifier
+    mock_component.title = title
+    mock_component.description = description
+    mock_component.enum = enum
+
+    mock_schema = mocker.MagicMock()
+    add_orphan_mock = mocker.patch.object(mock_schema, "add_orphan_elements")
+
+    expected = CodeList(identifier)
+    expected.identifier = identifier
+    expected.title = title
+    expected.description = description
+
+    create_code_element_mock = mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_code_element", side_effect=enum
+    )
+
+    actual = modelldcatno_factory._create_code_list(mock_component, mock_schema)
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
+    create_code_element_mock.assert_called()
+    add_orphan_mock.assert_called_once_with(enum)
+
+
+def test_create_code_element(mocker: MockerFixture) -> None:
+    """Test that Code Elements are correctly created."""
+    identifier = "identifier"
+    notation = "notation"
+    parent = "code_list_uri"
+
+    expected = CodeElement(identifier)
+    expected.notation = notation
+    expected.in_scheme = [parent]
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._create_identifier",
+        return_value=identifier,
+    )
+
+    mock_schema = mocker.MagicMock()
+
+    actual = modelldcatno_factory._create_code_element(notation, parent, mock_schema)
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
+
+
 def test_creates_specialization_property(mocker: MockerFixture) -> None:
     """Tests creation of Specialization model property."""
     specialiation_identifier = "specialiation_identifier"
@@ -661,6 +775,7 @@ def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     mock_component.format = None
     mock_component.min_occurs = min_occurs
     mock_component.max_occurs = max_occurs
+    mock_component.enum = None
 
     mock_schema = mocker.MagicMock()
 
@@ -674,6 +789,44 @@ def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     mocker.patch(
         "jsonschematordf.modelldcatnofactory.create_model_element",
         return_value=simple_type_identifier,
+    )
+
+    actual = modelldcatno_factory._create_attribute_property(
+        mock_component, mock_schema
+    )
+
+    g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
+    g2 = Graph().parse(data=actual.to_rdf(), format="turtle")
+
+    assert_isomorphic(g1, g2)
+
+
+def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
+    """Attributes create code list if enum is present."""
+    identifier = "identifier"
+    simple_type_identifier = "simple_type_identifier"
+    code_list_identifier = "code_list_identifier"
+    type = "string"
+    enum = ["1", "2", "3"]
+
+    mock_component = mocker.MagicMock()
+    mock_component.identifier = identifier
+    mock_component.type = type
+    mock_component.enum = enum
+    mock_component.title = None
+    mock_component.description = None
+    mock_component.max_occurs = None
+    mock_component.min_occurs = None
+
+    mock_schema = mocker.MagicMock()
+
+    expected = Attribute(identifier)
+    expected.has_simple_type = simple_type_identifier
+    expected.has_value_from = code_list_identifier
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.create_model_element",
+        side_effect=[simple_type_identifier, code_list_identifier],
     )
 
     actual = modelldcatno_factory._create_attribute_property(

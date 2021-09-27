@@ -6,6 +6,8 @@ from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
     Attribute,
     Choice,
+    CodeElement,
+    CodeList,
     ModelElement,
     ModelProperty,
     ObjectType,
@@ -20,6 +22,7 @@ from jsonschematordf.schema import Schema
 from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
 from jsonschematordf.types.enums import (
     CHOICE,
+    CODE_LIST,
     EMPTY_PATH,
     EXTERNAL_REFERENCE,
     OBJECT_ARRAY,
@@ -40,13 +43,17 @@ def create_model_property(
     if parsed_component_uri := schema.get_parsed_component_uri(component.complete_path):
         return parsed_component_uri
 
-    component.identifier = _create_identifier(component, schema)
+    component.identifier = _create_identifier(component.complete_path, schema)
     schema.add_parsed_component(component)
     component_type = _determine_component_type(component, schema)
 
     if component_type == OBJECT_TYPE:
         return _create_role_property(component, schema)
-    if component_type == SIMPLE_TYPE:
+    if (
+        component_type == SIMPLE_TYPE
+        or component_type == PRIMITIVE_SIMPLE_TYPE
+        or component_type == CODE_LIST
+    ):
         return _create_attribute_property(component, schema)
     if component_type == CHOICE:
         return _create_choice_property(component, schema)
@@ -56,6 +63,7 @@ def create_model_property(
         return _create_object_array_property(component, schema)
     if component_type == SIMPLE_TYPE_ARRAY:
         return _create_simple_type_array_property(component, schema)
+
     return None
 
 
@@ -68,7 +76,7 @@ def create_model_element(
     if component.ref:
         return _resolve_component_reference(component.ref, schema)
 
-    component.identifier = _create_identifier(component, schema)
+    component.identifier = _create_identifier(component.complete_path, schema)
     schema.add_parsed_component(component)
     component_type = _determine_component_type(component, schema)
 
@@ -78,7 +86,20 @@ def create_model_element(
         return _create_simple_type(component, schema)
     if component_type == PRIMITIVE_SIMPLE_TYPE:
         return _create_primitive_simple_type(component)
+    if component_type == CODE_LIST:
+        return _create_code_list(component, schema)
     return None
+
+
+def _create_code_element(
+    notation: str, parent: CodeList, schema: Schema
+) -> CodeElement:
+    """Create Code Element."""
+    identifier = _create_identifier(None, schema)
+    code_element = CodeElement(identifier)
+    code_element.notation = notation
+    code_element.in_scheme = [parent]
+    return code_element
 
 
 def _resolve_component_reference(
@@ -125,6 +146,18 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
     """Determine type of json schema component."""
     ref_type = _determine_ref_type(component.ref, schema)
 
+    if component.items:
+        items_type = _determine_component_type(component.items, schema)
+        if items_type == OBJECT_TYPE:
+            return OBJECT_ARRAY
+        if items_type == SIMPLE_TYPE:
+            return SIMPLE_TYPE_ARRAY
+    if component.specializes:
+        return SPECIALIZES
+    if component.one_of:
+        return CHOICE
+    if component.enum:
+        return CODE_LIST
     if component.type == "object" or ref_type == "object":
         return OBJECT_TYPE
     if (
@@ -143,18 +176,7 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
             or component.exclusive_maximum
         ):
             return SIMPLE_TYPE
-        if component.format:
-            return PRIMITIVE_SIMPLE_TYPE
-    if component.items:
-        items_type = _determine_component_type(component.items, schema)
-        if items_type == OBJECT_TYPE:
-            return OBJECT_ARRAY
-        if items_type == SIMPLE_TYPE:
-            return SIMPLE_TYPE_ARRAY
-    if component.specializes:
-        return SPECIALIZES
-    if component.one_of:
-        return CHOICE
+        return PRIMITIVE_SIMPLE_TYPE
 
     return None
 
@@ -168,11 +190,11 @@ def _determine_ref_type(ref: Optional[str], schema: Schema) -> Optional[str]:
     return None
 
 
-def _create_identifier(component: Component, schema: Schema) -> URI:
+def _create_identifier(component_path: Optional[str], schema: Schema) -> URI:
     """Create identifier for component."""
-    if schema.base_uri and component.complete_path:
+    if schema.base_uri and component_path:
         try:
-            component_uri = f"{schema.base_uri}/{component.complete_path}"
+            component_uri = f"{schema.base_uri}/{component_path}"
             return URI(component_uri)
         except InvalidURIError:
             pass
@@ -243,6 +265,23 @@ def _create_primitive_simple_type(component: Component) -> SimpleType:
     return simple_type
 
 
+def _create_code_list(component: Component, schema: Schema) -> CodeList:
+    """Create Code List and add Code Elements to orphan graph."""
+    code_list = CodeList(component.identifier)
+    code_list.title = component.title
+    code_list.description = component.description
+
+    if component.enum:
+        code_elements = [
+            _create_code_element(notation=notation, parent=code_list, schema=schema)
+            for notation in component.enum
+        ]
+
+        schema.add_orphan_elements(code_elements)
+
+    return code_list
+
+
 def _create_specialization_property(
     component: Component, schema: Schema
 ) -> Specialization:
@@ -264,7 +303,13 @@ def _create_attribute_property(component: Component, schema: Schema) -> Attribut
     attribute.max_occurs = component.max_occurs
     attribute.min_occurs = component.min_occurs
     if component.type or component.format:
-        attribute.has_simple_type = create_model_element(component, schema)
+        attribute.has_simple_type = create_model_element(
+            component.copy(omit=["enum", "title", "description"]), schema
+        )
+    if component.enum:
+        attribute.has_value_from = create_model_element(
+            component.copy(omit=["type", "format"]), schema
+        )
 
     return attribute
 
