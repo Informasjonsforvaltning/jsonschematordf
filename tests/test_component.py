@@ -126,3 +126,13 @@ def test_identifier_set_and_get() -> None:
     component.identifier = identifier
 
     assert component.identifier == identifier
+
+
+def test_copy() -> None:
+    """Test Component copy funciton."""
+    component = Component(path="path", type="string", title={None: "title"})
+
+    expected = Component(path="path", type="string")
+
+    assert component.copy() == component
+    assert component.copy(omit=["title"]) == expected
