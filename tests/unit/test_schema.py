@@ -11,6 +11,7 @@ from jsonschematordf.schema import Schema
 from tests.testutils import assert_isomorphic
 
 
+@pytest.mark.unit
 def test_creates_valid_schema() -> None:
     """Test that valid schema is created."""
     base_uri = "https://uri.com"
@@ -20,6 +21,7 @@ def test_creates_valid_schema() -> None:
     assert schema.base_uri == base_uri
 
 
+@pytest.mark.unit
 def test_does_not_create_invalid_schema() -> None:
     """Test that invalid schema base URI raises InvalidURIError."""
     with pytest.raises(InvalidURIError):
@@ -27,6 +29,7 @@ def test_does_not_create_invalid_schema() -> None:
         Schema(base_uri, {})
 
 
+@pytest.mark.unit
 def test_recursive_path_returns_component() -> None:
     """Test that recursive paths returns correct components."""
     base_uri = "https://uri.com"
@@ -47,6 +50,7 @@ def test_recursive_path_returns_component() -> None:
     assert component.type == component_type[0]
 
 
+@pytest.mark.unit
 def test_unused_path__returns_empty_list() -> None:
     """Test that invalid path returns no components or URIs."""
     base_uri = "https://uri.com"
@@ -61,6 +65,7 @@ def test_unused_path__returns_empty_list() -> None:
     assert components == []
 
 
+@pytest.mark.unit
 def test_parsed_components_get_and_set(mocker: MockerFixture) -> None:
     """Test getting and setting of parsed components."""
     base_uri = "https://uri.com"
@@ -80,6 +85,7 @@ def test_parsed_components_get_and_set(mocker: MockerFixture) -> None:
     assert component_uri == identifier
 
 
+@pytest.mark.unit
 def test_set_parsed_component_with_invalid_uri_throws_exception(
     mocker: MockerFixture,
 ) -> None:
@@ -98,6 +104,7 @@ def test_set_parsed_component_with_invalid_uri_throws_exception(
         schema.add_parsed_component(mock_component)
 
 
+@pytest.mark.unit
 def test_orphan_element_graph_creation() -> None:
     """Test that orphan elements are added and that the returned graph is correct."""
     base_uri = "https://uri.com"

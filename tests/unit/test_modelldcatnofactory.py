@@ -11,6 +11,7 @@ from modelldcatnotordf.modelldcatno import (
     SimpleType,
     Specialization,
 )
+import pytest
 from pytest_mock import MockerFixture
 from rdflib.graph import Graph
 
@@ -21,6 +22,7 @@ from jsonschematordf.types.enums import EXTERNAL_REFERENCE, RECURSIVE_REFERENCE
 from tests.testutils import assert_isomorphic
 
 
+@pytest.mark.unit
 def test_create_model_property(mocker: MockerFixture) -> None:
     """Test that create_model_property returns correct property type."""
     mock_component = mocker.MagicMock()
@@ -39,6 +41,7 @@ def test_create_model_property(mocker: MockerFixture) -> None:
     mock_component.specializes = None
     mock_component.title = None
     mock_component.type = None
+    mock_component.properties = None
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
@@ -91,6 +94,7 @@ def test_create_model_property(mocker: MockerFixture) -> None:
     items_mock.specializes = None
     items_mock.one_of = None
     items_mock.enum = None
+    items_mock.properties = None
     mock_component.items = items_mock
     modelldcatno_factory.create_model_property(mock_component, mock_schema)
     object_array_creator_mock.assert_called_once()
@@ -103,6 +107,7 @@ def test_create_model_property(mocker: MockerFixture) -> None:
     mock_component.items = None
 
 
+@pytest.mark.unit
 def test_create_model_element(mocker: MockerFixture) -> None:
     """Test that create_model_element returns correct element type."""
     mock_component = mocker.MagicMock()
@@ -122,6 +127,7 @@ def test_create_model_element(mocker: MockerFixture) -> None:
     mock_component.title = None
     mock_component.type = None
     mock_component.ref = None
+    mock_component.properties = None
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
@@ -167,6 +173,7 @@ def test_create_model_element(mocker: MockerFixture) -> None:
     mock_component.enum = None
 
 
+@pytest.mark.unit
 def test_create_model_element_resolves_ref(mocker: MockerFixture) -> None:
     """Create model element should resolve referenced component."""
     ref_identifier = "identifier"
@@ -187,6 +194,7 @@ def test_create_model_element_resolves_ref(mocker: MockerFixture) -> None:
     )
 
 
+@pytest.mark.unit
 def test_resolve_component_reference_resolves_recursive_reference(
     mocker: MockerFixture,
 ) -> None:
@@ -209,6 +217,7 @@ def test_resolve_component_reference_resolves_recursive_reference(
     )
 
 
+@pytest.mark.unit
 def test_resolve_component_reference_resolves_external_reference(
     mocker: MockerFixture,
 ) -> None:
@@ -226,6 +235,7 @@ def test_resolve_component_reference_resolves_external_reference(
     )
 
 
+@pytest.mark.unit
 def test_resolve_component_reference_returns_none(mocker: MockerFixture) -> None:
     """Returns None if reference cannot be resolved."""
     mock_reference = mocker.MagicMock()
@@ -241,6 +251,7 @@ def test_resolve_component_reference_returns_none(mocker: MockerFixture) -> None
     )
 
 
+@pytest.mark.unit
 def test_resolve_recursive_reference_returns_and_adds_orphan(
     mocker: MockerFixture,
 ) -> None:
@@ -269,6 +280,7 @@ def test_resolve_recursive_reference_returns_and_adds_orphan(
     assert actual == component
 
 
+@pytest.mark.unit
 def test_resolve_recursive_reference_returns_single_element_without_adding_orphans(
     mocker: MockerFixture,
 ) -> None:
@@ -296,6 +308,7 @@ def test_resolve_recursive_reference_returns_single_element_without_adding_orpha
     assert actual == component
 
 
+@pytest.mark.unit
 def test_resolve_recursive_reference_returns_uri(mocker: MockerFixture,) -> None:
     """Returns only referenced component, adding no orphans to schema."""
     component = mocker.MagicMock(spec=URI)
@@ -321,6 +334,7 @@ def test_resolve_recursive_reference_returns_uri(mocker: MockerFixture,) -> None
     assert actual == component
 
 
+@pytest.mark.unit
 def test_resolve_recursive_reference_returns_none(mocker: MockerFixture,) -> None:
     """Returns None if no elements are created or resolved."""
     model_element_uris = [None, None, None]
@@ -345,6 +359,7 @@ def test_resolve_recursive_reference_returns_none(mocker: MockerFixture,) -> Non
     assert actual is None
 
 
+@pytest.mark.unit
 def test_creators_returns_already_parsed_components(mocker: MockerFixture) -> None:
     """Test element and property creators returns identifier of parsed components."""
     identifier = "identifier"
@@ -366,6 +381,7 @@ def test_creators_returns_already_parsed_components(mocker: MockerFixture) -> No
     )
 
 
+@pytest.mark.unit
 def test_invalid_component_returns_no_element_or_property(
     mocker: MockerFixture,
 ) -> None:
@@ -390,6 +406,7 @@ def test_invalid_component_returns_no_element_or_property(
     mock_component.title = None
     mock_component.type = None
     mock_component.ref = None
+    mock_component.properties = None
 
     assert (
         modelldcatno_factory.create_model_element(mock_component, mock_schema) is None
@@ -399,6 +416,7 @@ def test_invalid_component_returns_no_element_or_property(
     )
 
 
+@pytest.mark.unit
 def test_returns_correct_type_of_ref(mocker: MockerFixture) -> None:
     """Test that reference type is correctly returned."""
     mock_component = mocker.MagicMock(spec=Component)
@@ -412,6 +430,7 @@ def test_returns_correct_type_of_ref(mocker: MockerFixture) -> None:
     assert modelldcatno_factory._determine_ref_type("test", mock_schema) == "string"
 
 
+@pytest.mark.unit
 def test_create_valid_identifier(mocker: MockerFixture) -> None:
     """Test that valid attributes produces expeceted identifier."""
     title = "title"
@@ -428,6 +447,7 @@ def test_create_valid_identifier(mocker: MockerFixture) -> None:
     assert expected == actual
 
 
+@pytest.mark.unit
 def test_create_invalid_identifier_returns_skolemized_identifier(
     mocker: MockerFixture,
 ) -> None:
@@ -452,6 +472,7 @@ def test_create_invalid_identifier_returns_skolemized_identifier(
     skolemizer_mock.assert_called_once
 
 
+@pytest.mark.unit
 def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     """Test that missing title produces skolemized identifier."""
     mock_component = mocker.MagicMock()
@@ -470,6 +491,7 @@ def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     skolemizer_mock.assert_called_once
 
 
+@pytest.mark.unit
 def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     """Test that missing path produces skolemized identifier."""
     mock_component = mocker.MagicMock()
@@ -488,6 +510,7 @@ def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     skolemizer_mock.assert_called_once
 
 
+@pytest.mark.unit
 def test_no_base_uri_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     """Test that missing base uri produces skolemized identifier."""
     mock_component = mocker.MagicMock()
@@ -506,6 +529,7 @@ def test_no_base_uri_returns_skolemized_identifier(mocker: MockerFixture) -> Non
     skolemizer_mock.assert_called_once
 
 
+@pytest.mark.unit
 def test_creates_valid_object_type(mocker: MockerFixture) -> None:
     """Test that ObjectTypes are correctly created."""
     identifier = "identifier"
@@ -539,6 +563,7 @@ def test_creates_valid_object_type(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_valid_simple_type(mocker: MockerFixture) -> None:
     """Test that SimpleTypes are correctly created."""
     identifier = "identifier"
@@ -585,6 +610,7 @@ def test_creates_valid_simple_type(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_simple_type_exclusive_values_set_correctly(mocker: MockerFixture) -> None:
     """Test that exclusive min and max is set correctly."""
     identifier = "identifier"
@@ -615,6 +641,7 @@ def test_simple_type_exclusive_values_set_correctly(mocker: MockerFixture) -> No
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_simple_type_inclusive_values_set_correctly(mocker: MockerFixture) -> None:
     """Test that inclusive min and max is set correctly."""
     identifier = "identifier"
@@ -645,6 +672,7 @@ def test_simple_type_inclusive_values_set_correctly(mocker: MockerFixture) -> No
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_valid_primitive_simple_type(mocker: MockerFixture) -> None:
     """Test that primitve SimpleTypes are correctly created."""
     identifier = "identifier"
@@ -668,6 +696,7 @@ def test_creates_valid_primitive_simple_type(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_create_code_list(mocker: MockerFixture) -> None:
     """Code Lists are correctly created and and code elements added to orphan graph."""
     identifier = "identifier"
@@ -703,6 +732,7 @@ def test_create_code_list(mocker: MockerFixture) -> None:
     add_orphan_mock.assert_called_once_with(enum)
 
 
+@pytest.mark.unit
 def test_create_code_element(mocker: MockerFixture) -> None:
     """Test that Code Elements are correctly created."""
     identifier = "identifier"
@@ -728,6 +758,7 @@ def test_create_code_element(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_specialization_property(mocker: MockerFixture) -> None:
     """Tests creation of Specialization model property."""
     specialiation_identifier = "specialiation_identifier"
@@ -757,6 +788,7 @@ def test_creates_specialization_property(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     """Test that attribute properties are correctly created."""
     attribute_identifier = "identifier"
@@ -801,6 +833,7 @@ def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
     """Attributes create code list if enum is present."""
     identifier = "identifier"
@@ -839,6 +872,7 @@ def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_choice_property(mocker: MockerFixture) -> None:
     """Test that choice properties are correctly created."""
     identifier = "identifier"
@@ -878,6 +912,7 @@ def test_creates_choice_property(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_object_array_property(mocker: MockerFixture) -> None:
     """Test that object array properties are correctly created."""
     identifier = "identifier"
@@ -918,6 +953,7 @@ def test_creates_object_array_property(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_simple_type_array_property(mocker: MockerFixture) -> None:
     """Test that simple type array properties are correctly created."""
     identifier = "identifier"
@@ -957,6 +993,7 @@ def test_creates_simple_type_array_property(mocker: MockerFixture) -> None:
     assert_isomorphic(g1, g2)
 
 
+@pytest.mark.unit
 def test_creates_role_property(mocker: MockerFixture) -> None:
     """Test that role properties are correctly created."""
     identifier = "identifier"
