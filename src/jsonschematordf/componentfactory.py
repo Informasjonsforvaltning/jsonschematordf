@@ -46,9 +46,9 @@ def create_component(
     ref = json_schema_representation.get("$ref")
 
     if type == "array" or one_of:
-        max_occurs: Optional[Union[str, int]] = max_items if max_items else "*"
+        max_occurs: Optional[str] = str(max_items) if max_items else "*"
     else:
-        max_occurs = 1
+        max_occurs = "1"
 
     if title is not None and required is not None and title in required:
         min_occurs = 1
