@@ -8,16 +8,25 @@ import nox_poetry  # noqa: F401
 package = "jsonschematordf"
 locations = "src", "tests", "noxfile.py", "docs/conf.py"
 nox.options.stop_on_first_error = True
-nox.options.sessions = "lint", "mypy", "pytype", "tests"
+nox.options.sessions = "lint", "mypy", "pytype", "unit_tests", "integration_tests"
 
 
 @nox_poetry.session(python=["3.9"])
-def tests(session: Session) -> None:
-    """Run the test suite."""
+def unit_tests(session: Session) -> None:
+    """Run the unit test suite."""
     args = session.posargs or ["--cov"]
     session.install(".")
     session.install("coverage[toml]", "pytest", "pytest-cov")
-    session.run("pytest", "-rA", *args)
+    session.run("pytest","-m unit", "-rA", *args)
+
+
+@nox_poetry.session(python=["3.9"])
+def integration_tests(session: Session) -> None:
+    """Run the integration test suite."""
+    args = session.posargs or ["--cov"]
+    session.install(".")
+    session.install("coverage[toml]", "pytest", "pytest-cov")
+    session.run("pytest","-m integration", "-rA", *args)
 
 
 @nox_poetry.session(python="3.9")

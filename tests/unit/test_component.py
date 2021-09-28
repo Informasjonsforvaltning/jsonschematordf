@@ -1,7 +1,10 @@
 """Pytests."""
+import pytest
+
 from jsonschematordf.component import Component
 
 
+@pytest.mark.unit
 def test_component_sets_fields_correctly() -> None:
     """Test intializing Component object."""
     path = "#/path"
@@ -108,6 +111,7 @@ def test_component_sets_fields_correctly() -> None:
     assert component.specializes == specializes
 
 
+@pytest.mark.unit
 def test_complete_path_returns_none_for_missing_title() -> None:
     """Test that complete path is not built without title."""
     path = "#/path"
@@ -116,6 +120,7 @@ def test_complete_path_returns_none_for_missing_title() -> None:
     assert component.complete_path is None
 
 
+@pytest.mark.unit
 def test_identifier_set_and_get() -> None:
     """Test that identifier can be set and gotten."""
     identifier = "identifier"
@@ -128,6 +133,7 @@ def test_identifier_set_and_get() -> None:
     assert component.identifier == identifier
 
 
+@pytest.mark.unit
 def test_copy() -> None:
     """Test Component copy funciton."""
     component = Component(path="path", type="string", title={None: "title"})

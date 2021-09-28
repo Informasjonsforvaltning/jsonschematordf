@@ -1,9 +1,12 @@
 """Pytests."""
 from typing import Dict
 
+import pytest
+
 import jsonschematordf.componentfactory as component_factory
 
 
+@pytest.mark.unit
 def test_component_creator_sets_all_fields_correctly() -> None:
     """Test that ComponentFactory returns Component with correct attributes set."""
     path = "#/path"
@@ -96,6 +99,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
     assert component.ref == ref
 
 
+@pytest.mark.unit
 def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
     """Test that multiplicities are correctly inferred."""
     path = "#/path"
@@ -120,6 +124,7 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
     assert max_from_max_items.max_occurs == 100
 
 
+@pytest.mark.unit
 def test_componentfactory_returns_component_for_each_type() -> None:
     """Test that one Component per type is created."""
     path = "#/path"
@@ -132,6 +137,7 @@ def test_componentfactory_returns_component_for_each_type() -> None:
     assert components[0].type == types[0] and components[1].type == types[1]
 
 
+@pytest.mark.unit
 def test_componentfactory_returns_component_for_empty_schema() -> None:
     """Test that one Component per type is created."""
     path = "#/path"
