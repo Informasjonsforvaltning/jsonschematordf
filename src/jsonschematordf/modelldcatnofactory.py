@@ -158,7 +158,7 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
         return CHOICE
     if component.enum:
         return CODE_LIST
-    if component.type == "object" or ref_type == "object":
+    if component.type == "object" or ref_type == "object" or component.properties:
         return OBJECT_TYPE
     if (
         component.type in TYPE_DEFINITION_REFERENCE.keys()
