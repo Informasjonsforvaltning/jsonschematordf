@@ -59,7 +59,7 @@ class Component:
     _all_of: Optional[List["Component"]]
     _one_of: Optional[List["Component"]]
     _ref: Optional[str]
-    _max_occurs: Optional[Union[str, int]]
+    _max_occurs: Optional[str]
     _min_occurs: Optional[int]
     _identifier: Optional[URI]
     _specializes: Optional["Component"]
@@ -87,7 +87,7 @@ class Component:
         all_of: Optional[List["Component"]] = None,
         one_of: Optional[List["Component"]] = None,
         ref: Optional[str] = None,
-        max_occurs: Optional[Union[str, int]] = None,
+        max_occurs: Optional[str] = None,
         min_occurs: Optional[int] = None,
         specializes: Optional["Component"] = None,
     ) -> None:
@@ -310,7 +310,7 @@ class Component:
         return self._ref
 
     @property
-    def max_occurs(self) -> Optional[Union[str, int]]:
+    def max_occurs(self) -> Optional[str]:
         """Getter for ref."""
         return self._max_occurs
 

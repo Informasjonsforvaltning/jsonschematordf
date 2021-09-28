@@ -110,7 +110,7 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
     )
 
     assert min_one_max_one._min_occurs == 1
-    assert min_one_max_one._max_occurs == 1
+    assert min_one_max_one._max_occurs == "1"
 
     min_zero_max_multi = component_factory.create_component(path, {"type": "array"})
 
@@ -121,7 +121,7 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
         path, {"type": "array", "maxItems": 100}
     )
 
-    assert max_from_max_items.max_occurs == 100
+    assert max_from_max_items.max_occurs == "100"
 
 
 @pytest.mark.unit
