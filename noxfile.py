@@ -17,16 +17,15 @@ def unit_tests(session: Session) -> None:
     args = session.posargs or ["--cov"]
     session.install(".")
     session.install("coverage[toml]", "pytest", "pytest-cov")
-    session.run("pytest","-m unit", "-rA", *args)
+    session.run("pytest", "-m unit", "-rA", *args)
 
 
 @nox_poetry.session(python=["3.9"])
 def integration_tests(session: Session) -> None:
     """Run the integration test suite."""
-    args = session.posargs or ["--cov"]
     session.install(".")
-    session.install("coverage[toml]", "pytest", "pytest-cov")
-    session.run("pytest","-m integration", "-rA", *args)
+    session.install("pytest", "pytest-cov")
+    session.run("pytest", "-m integration", "-rA")
 
 
 @nox_poetry.session(python="3.9")
