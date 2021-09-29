@@ -45,9 +45,9 @@ def test_create_model_property(mocker: MockerFixture) -> None:
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
+    mocker.patch.object(mock_schema, "create_identifier", return_value=None)
 
     mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
-    mocker.patch("jsonschematordf.modelldcatnofactory._create_identifier",)
 
     role_creator_mock = mocker.patch(
         "jsonschematordf.modelldcatnofactory._create_role_property",
@@ -131,9 +131,9 @@ def test_create_model_element(mocker: MockerFixture) -> None:
 
     mock_schema = mocker.MagicMock()
     mocker.patch.object(mock_schema, "get_parsed_component_uri", return_value=None)
+    mocker.patch.object(mock_schema, "create_identifier", return_value=None)
 
     mocker.patch("jsonschematordf.schema.Schema.add_parsed_component")
-    mocker.patch("jsonschematordf.modelldcatnofactory._create_identifier",)
 
     object_creator_mock = mocker.patch(
         "jsonschematordf.modelldcatnofactory._create_object_type",
@@ -431,105 +431,6 @@ def test_returns_correct_type_of_ref(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.unit
-def test_create_valid_identifier(mocker: MockerFixture) -> None:
-    """Test that valid attributes produces expeceted identifier."""
-    title = "title"
-    component_path = "components/schemas"
-    base_uri = "http://uri.com"
-    complete_path = f"{component_path}#{title}"
-
-    mock_schema = mocker.MagicMock()
-    mock_schema.base_uri = base_uri
-
-    expected = f"{base_uri}/{component_path}#{title}"
-    actual = modelldcatno_factory._create_identifier(complete_path, mock_schema)
-
-    assert expected == actual
-
-
-@pytest.mark.unit
-def test_create_invalid_identifier_returns_skolemized_identifier(
-    mocker: MockerFixture,
-) -> None:
-    """Test that invalid attributes produces skolemized identifier."""
-    title = "!!"
-    component_path = "<path>"
-    base_uri = "http://uri.com"
-    mock_component = mocker.MagicMock()
-    mock_component.path = f"#/{component_path}"
-    mock_component.title = {None: title}
-
-    mock_schema = mocker.MagicMock()
-    mock_schema.base_uri = base_uri
-
-    expected = "skolemized_id"
-    skolemizer_mock = mocker.patch(
-        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
-    )
-    actual = modelldcatno_factory._create_identifier(mock_component, mock_schema)
-
-    assert expected == actual
-    skolemizer_mock.assert_called_once
-
-
-@pytest.mark.unit
-def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
-    """Test that missing title produces skolemized identifier."""
-    mock_component = mocker.MagicMock()
-    mock_component.title = None
-
-    mock_schema = mocker.MagicMock()
-
-    expected = "skolemized_id"
-    skolemizer_mock = mocker.patch(
-        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
-    )
-
-    actual = modelldcatno_factory._create_identifier(mock_component, mock_schema)
-
-    assert expected == actual
-    skolemizer_mock.assert_called_once
-
-
-@pytest.mark.unit
-def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
-    """Test that missing path produces skolemized identifier."""
-    mock_component = mocker.MagicMock()
-    mock_component.path = None
-
-    mock_schema = mocker.MagicMock()
-
-    expected = "skolemized_id"
-    skolemizer_mock = mocker.patch(
-        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
-    )
-
-    actual = modelldcatno_factory._create_identifier(mock_component, mock_schema)
-
-    assert expected == actual
-    skolemizer_mock.assert_called_once
-
-
-@pytest.mark.unit
-def test_no_base_uri_returns_skolemized_identifier(mocker: MockerFixture) -> None:
-    """Test that missing base uri produces skolemized identifier."""
-    mock_component = mocker.MagicMock()
-
-    mock_schema = mocker.MagicMock()
-    mock_schema.base_uri = None
-
-    expected = "skolemized_id"
-    skolemizer_mock = mocker.patch(
-        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
-    )
-
-    actual = modelldcatno_factory._create_identifier(mock_component, mock_schema)
-
-    assert expected == actual
-    skolemizer_mock.assert_called_once
-
-
-@pytest.mark.unit
 def test_creates_valid_object_type(mocker: MockerFixture) -> None:
     """Test that ObjectTypes are correctly created."""
     identifier = "identifier"
@@ -743,12 +644,8 @@ def test_create_code_element(mocker: MockerFixture) -> None:
     expected.notation = notation
     expected.in_scheme = [parent]
 
-    mocker.patch(
-        "jsonschematordf.modelldcatnofactory._create_identifier",
-        return_value=identifier,
-    )
-
     mock_schema = mocker.MagicMock()
+    mocker.patch.object(mock_schema, "create_identifier", return_value=identifier)
 
     actual = modelldcatno_factory._create_code_element(notation, parent, mock_schema)
 

@@ -1,7 +1,6 @@
 """ModelldcatnoFactory module."""
 from typing import Optional, Union
 
-from datacatalogtordf.exceptions import InvalidURIError
 from datacatalogtordf.uri import URI
 from modelldcatnotordf.modelldcatno import (
     Attribute,
@@ -15,7 +14,6 @@ from modelldcatnotordf.modelldcatno import (
     SimpleType,
     Specialization,
 )
-from skolemizer import Skolemizer
 
 from jsonschematordf.component import Component
 from jsonschematordf.schema import Schema
@@ -43,7 +41,7 @@ def create_model_property(
     if parsed_component_uri := schema.get_parsed_component_uri(component.complete_path):
         return parsed_component_uri
 
-    component.identifier = _create_identifier(component.complete_path, schema)
+    component.identifier = schema.create_identifier(component.complete_path)
     schema.add_parsed_component(component)
     component_type = _determine_component_type(component, schema)
 
@@ -76,7 +74,7 @@ def create_model_element(
     if component.ref:
         return _resolve_component_reference(component.ref, schema)
 
-    component.identifier = _create_identifier(component.complete_path, schema)
+    component.identifier = schema.create_identifier(component.complete_path)
     schema.add_parsed_component(component)
     component_type = _determine_component_type(component, schema)
 
@@ -95,7 +93,7 @@ def _create_code_element(
     notation: str, parent: CodeList, schema: Schema
 ) -> CodeElement:
     """Create Code Element."""
-    identifier = _create_identifier(None, schema)
+    identifier = schema.create_identifier(None)
     code_element = CodeElement(identifier)
     code_element.notation = notation
     code_element.in_scheme = [parent]
@@ -188,17 +186,6 @@ def _determine_ref_type(ref: Optional[str], schema: Schema) -> Optional[str]:
         if isinstance(referenced_component, Component):
             return referenced_component.type
     return None
-
-
-def _create_identifier(component_path: Optional[str], schema: Schema) -> URI:
-    """Create identifier for component."""
-    if schema.base_uri and component_path:
-        try:
-            component_uri = f"{schema.base_uri}/{component_path}"
-            return URI(component_uri)
-        except InvalidURIError:
-            pass
-    return Skolemizer.add_skolemization()
 
 
 def _create_object_type(component: Component, schema: Schema) -> ObjectType:

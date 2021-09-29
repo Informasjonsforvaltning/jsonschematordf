@@ -1,9 +1,11 @@
 """Schema module."""
+import os
 from typing import Any, Dict, List, Optional, Union
 
-from datacatalogtordf.uri import URI
+from datacatalogtordf.uri import InvalidURIError, URI
 from modelldcatnotordf.modelldcatno import CodeElement, ModelElement
 from rdflib import Graph
+from skolemizer import Skolemizer
 
 from jsonschematordf.component import Component
 import jsonschematordf.componentfactory as component_factory
@@ -33,6 +35,7 @@ class Schema:
         self.__json_schema_representation = json_schema_representation
         self.__parsed_components_cache = {}
         self.__orphans = []
+        os.environ["skolemizer_baseurl"] = base_uri
 
     @property
     def base_uri(self) -> str:
@@ -77,3 +80,13 @@ class Schema:
             out_graph.parse(data=orphan_element.to_rdf(), format="turtle")
 
         return out_graph
+
+    def create_identifier(self, component_path: Optional[str]) -> URI:
+        """Create identifier for component."""
+        if component_path:
+            try:
+                component_uri = f"{self.base_uri}/{component_path}"
+                return URI(component_uri)
+            except InvalidURIError:
+                pass
+        return Skolemizer.add_skolemization()

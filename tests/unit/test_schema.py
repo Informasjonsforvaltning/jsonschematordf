@@ -129,3 +129,81 @@ def test_orphan_element_graph_creation() -> None:
     expected = Graph().parse(data=expected, format="turtle")
 
     assert_isomorphic(expected, actual)
+
+
+@pytest.mark.unit
+def test_create_valid_identifier(mocker: MockerFixture) -> None:
+    """Test that valid attributes produces expeceted identifier."""
+    title = "title"
+    component_path = "components/schemas"
+    base_uri = "http://uri.com"
+    complete_path = f"{component_path}#{title}"
+
+    schema = Schema(base_uri, {})
+
+    expected = f"{base_uri}/{component_path}#{title}"
+    actual = schema.create_identifier(complete_path)
+
+    assert expected == actual
+
+
+@pytest.mark.unit
+def test_create_invalid_identifier_returns_skolemized_identifier(
+    mocker: MockerFixture,
+) -> None:
+    """Test that invalid attributes produces skolemized identifier."""
+    title = "!!"
+    component_path = "<path>"
+    base_uri = "http://uri.com"
+    mock_component = mocker.MagicMock()
+    mock_component.path = f"#/{component_path}"
+    mock_component.title = {None: title}
+
+    schema = Schema(base_uri, {})
+
+    expected = "skolemized_id"
+    skolemizer_mock = mocker.patch(
+        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
+    )
+    actual = schema.create_identifier(mock_component)
+
+    assert expected == actual
+    skolemizer_mock.assert_called_once
+
+
+@pytest.mark.unit
+def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
+    """Test that missing title produces skolemized identifier."""
+    mock_component = mocker.MagicMock()
+    mock_component.title = None
+
+    schema = Schema("test", {})
+
+    expected = "skolemized_id"
+    skolemizer_mock = mocker.patch(
+        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
+    )
+
+    actual = schema.create_identifier(mock_component)
+
+    assert expected == actual
+    skolemizer_mock.assert_called_once
+
+
+@pytest.mark.unit
+def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
+    """Test that missing path produces skolemized identifier."""
+    mock_component = mocker.MagicMock()
+    mock_component.path = None
+
+    schema = Schema("test", {})
+
+    expected = "skolemized_id"
+    skolemizer_mock = mocker.patch(
+        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
+    )
+
+    actual = schema.create_identifier(mock_component)
+
+    assert expected == actual
+    skolemizer_mock.assert_called_once
