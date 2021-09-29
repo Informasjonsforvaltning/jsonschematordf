@@ -7,10 +7,10 @@ from jsonschematordf.component import Component
 @pytest.mark.unit
 def test_component_sets_fields_correctly() -> None:
     """Test intializing Component object."""
-    path = "#/path"
+    path = ["#", "path"]
     type = "type"
     title = {None: "title"}
-    complete_path = "/path#title"
+    complete_path = "#title"
     description = {None: "description"}
     pattern = "pattern"
     format = "format"
@@ -25,25 +25,27 @@ def test_component_sets_fields_correctly() -> None:
     min_items = 0
     max_items = 1
     items = Component(
-        "#/path/title", title={None: "items"}, description={None: "items_description"}
+        ["#", "path", "title"],
+        title={None: "items"},
+        description={None: "items_description"},
     )
     properties = [
         Component(
-            "#/path/title",
+            ["#", "path", "title"],
             title={None: "properties"},
             description={None: "properties_description"},
         )
     ]
     all_of = [
         Component(
-            "#/path/title",
+            ["#", "path", "title"],
             title={None: "all_of"},
             description={None: "all_of_description"},
         )
     ]
     one_of = [
         Component(
-            "#/path/title",
+            ["#", "path", "title"],
             title={None: "one_of"},
             description={None: "one_of_description"},
         )
@@ -52,7 +54,7 @@ def test_component_sets_fields_correctly() -> None:
     max_occurs = "*"
     min_occurs = 0
     specializes = Component(
-        "#/path/title",
+        ["#", "path", "title"],
         title={None: "specializes"},
         description={None: "specializes_description"},
     )
@@ -114,7 +116,7 @@ def test_component_sets_fields_correctly() -> None:
 @pytest.mark.unit
 def test_complete_path_returns_none_for_missing_title() -> None:
     """Test that complete path is not built without title."""
-    path = "#/path"
+    path = ["#", "path"]
     component = Component(path)
 
     assert component.complete_path is None
@@ -124,7 +126,7 @@ def test_complete_path_returns_none_for_missing_title() -> None:
 def test_identifier_set_and_get() -> None:
     """Test that identifier can be set and gotten."""
     identifier = "identifier"
-    component = Component("#")
+    component = Component(["#"])
 
     assert component.identifier is None
 
@@ -136,9 +138,9 @@ def test_identifier_set_and_get() -> None:
 @pytest.mark.unit
 def test_copy() -> None:
     """Test Component copy funciton."""
-    component = Component(path="path", type="string", title={None: "title"})
+    component = Component(path=["#"], type="string", title={None: "title"})
 
-    expected = Component(path="path", type="string")
+    expected = Component(path=["#"], type="string")
 
     assert component.copy() == component
     assert component.copy(omit=["title"]) == expected

@@ -1,12 +1,12 @@
 """ComponentFactory module."""
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from jsonschematordf.component import Component
 from jsonschematordf.types.enums import EMPTY_PATH
 
 
 def create_components(
-    path: Optional[str], json_schema_representation: Dict
+    path: List[str], json_schema_representation: Dict
 ) -> List[Component]:
     """Creates component for each associated type."""
     component_types = json_schema_representation.get("type")
@@ -19,11 +19,9 @@ def create_components(
         return [create_component(path, json_schema_representation)]
 
 
-def create_component(
-    path: Optional[str], json_schema_representation: Dict
-) -> Component:
+def create_component(path: List[str], json_schema_representation: Dict) -> Component:
     """Map JSON Schema dict representation to Component."""
-    component_path = path if path else EMPTY_PATH
+    component_path = path
     type = json_schema_representation.get("type")
     title = json_schema_representation.get("title")
     description = json_schema_representation.get("description")
@@ -55,7 +53,7 @@ def create_component(
     else:
         min_occurs = 0
 
-    child_path = f"{path}/{title}" if title else None
+    child_path = [*path, title] if title else [EMPTY_PATH]
 
     return Component(
         path=component_path,

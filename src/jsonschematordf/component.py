@@ -1,6 +1,6 @@
 """Component module."""
 from copy import deepcopy
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from datacatalogtordf.uri import URI
 
@@ -38,7 +38,7 @@ class Component:
         "_specializes",
     )
 
-    _path: str
+    _path: List[str]
     _type: Optional[str]
     _title: Optional[Dict[None, str]]
     _description: Optional[Dict[None, str]]
@@ -66,7 +66,7 @@ class Component:
 
     def __init__(
         self,
-        path: str,
+        path: List[str],
         type: Optional[str] = None,
         title: Optional[Dict[None, str]] = None,
         description: Optional[Dict[None, str]] = None,
@@ -154,7 +154,7 @@ class Component:
             return deepcopy(self)
         else:
             return Component(
-                path=self.path if "path" not in omit else EMPTY_PATH,
+                path=self.path if "path" not in omit else [EMPTY_PATH],
                 type=self.type if "type" not in omit else None,
                 title=self.title if "title" not in omit else None,
                 description=self.description if "description" not in omit else None,
@@ -197,15 +197,15 @@ class Component:
     @property
     def complete_path(self) -> Optional[str]:
         """Constructs complete path to component."""
-        non_relative_path = self._path.replace(EMPTY_PATH, "")
+        path_string_without_title_and_recursion_char = "/".join(self._path[2:])
         title_string = self._title.get(None) if self._title else None
         if title_string:
-            return f"{non_relative_path}#{title_string}"
+            return f"{path_string_without_title_and_recursion_char}#{title_string}"
         else:
             return None
 
     @property
-    def path(self) -> str:
+    def path(self) -> List[str]:
         """Getter for path."""
         return self._path
 

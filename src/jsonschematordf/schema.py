@@ -45,13 +45,15 @@ class Schema:
     def get_components_by_path(self, path: str) -> List[Component]:
         """Attempt to get component by reference path."""
         path_list = path.split("/")
-        component_representation = nested_get(
-            self.__json_schema_representation, *path_list[1:]
-        )
+        non_relative_path = path_list[1:]
         component_title = path_list[-1]
+
+        component_representation = nested_get(
+            self.__json_schema_representation, *non_relative_path
+        )
         if isinstance(component_representation, Dict):
             return component_factory.create_components(
-                path, {"title": component_title, **component_representation}
+                path_list, {"title": component_title, **component_representation}
             )
         else:
             return []

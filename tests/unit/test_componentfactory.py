@@ -9,7 +9,7 @@ import jsonschematordf.componentfactory as component_factory
 @pytest.mark.unit
 def test_component_creator_sets_all_fields_correctly() -> None:
     """Test that ComponentFactory returns Component with correct attributes set."""
-    path = "#/path"
+    path = ["#", "path"]
     type = "type"
     title = "title"
     description = "description"
@@ -54,14 +54,14 @@ def test_component_creator_sets_all_fields_correctly() -> None:
         "$ref": ref,
     }
 
-    child_path = f"{path}/{title}"
+    child_path = [*path, title]
 
     component = component_factory.create_component(path, json_schema_representation)
 
     assert component.path == path
     assert component.type == type
     assert component.title == {None: title}
-    assert component.complete_path == f"/path#{title}"
+    assert component.complete_path == f"#{title}"
     assert component.description == {None: description}
     assert component.pattern == pattern
     assert component.format == format
@@ -80,7 +80,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
     )
     assert component.properties == [
         component_factory.create_component(
-            f"{path}/{title}",
+            child_path,
             {
                 **properties.get("property_title", {}),
                 "title": "property_title",
@@ -102,7 +102,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
 @pytest.mark.unit
 def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
     """Test that multiplicities are correctly inferred."""
-    path = "#/path"
+    path = ["#", "path"]
     title = "title"
 
     min_one_max_one = component_factory.create_component(
@@ -127,7 +127,7 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
 @pytest.mark.unit
 def test_componentfactory_returns_component_for_each_type() -> None:
     """Test that one Component per type is created."""
-    path = "#/path"
+    path = ["#", "path"]
     types = ["type1", "type2"]
     json_schema_representation = {"type": types}
 
@@ -140,7 +140,7 @@ def test_componentfactory_returns_component_for_each_type() -> None:
 @pytest.mark.unit
 def test_componentfactory_returns_component_for_empty_schema() -> None:
     """Test that one Component per type is created."""
-    path = "#/path"
+    path = ["#", "path"]
     json_schema_representation: Dict = {}
 
     components = component_factory.create_components(path, json_schema_representation)
