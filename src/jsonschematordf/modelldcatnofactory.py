@@ -226,10 +226,10 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
 
     if component.title and (component.type or component.format):
         primitive_simple_type = Component(
-            EMPTY_PATH, format=component.format, type=component.type
+            [EMPTY_PATH], format=component.format, type=component.type
         )
         specialization_component = Component(
-            component.path + "/specializes", specializes=primitive_simple_type
+            [*component.path, "specializes"], specializes=primitive_simple_type
         )
 
         simple_type.has_property = [
