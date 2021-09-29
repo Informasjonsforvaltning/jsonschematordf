@@ -142,7 +142,7 @@ def _resolve_recursive_reference(
 
 def _determine_component_type(component: Component, schema: Schema) -> Optional[str]:
     """Determine type of json schema component."""
-    ref_type = _determine_ref_type(component.ref, schema)
+    ref_type = _determine_ref_type(component.ref, schema) if component.ref else None
 
     if component.items:
         items_type = _determine_component_type(component.items, schema)
@@ -179,12 +179,18 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
     return None
 
 
-def _determine_ref_type(ref: Optional[str], schema: Schema) -> Optional[str]:
+def _determine_ref_type(ref: str, schema: Schema) -> Optional[str]:
     """Determine type of referenced schema."""
-    if ref:
-        referenced_component = schema.get_components_by_path(ref)
-        if isinstance(referenced_component, Component):
-            return referenced_component.type
+    reference_type = determine_reference_type(ref)
+    if reference_type == RECURSIVE_REFERENCE:
+        referenced_components = schema.get_components_by_path(ref)
+        if len(referenced_components) >= 1 and isinstance(
+            referenced_components[0], Component
+        ):
+            return referenced_components[0].type
+
+    elif reference_type == EXTERNAL_REFERENCE:
+        return "object"
     return None
 
 
@@ -289,13 +295,13 @@ def _create_attribute_property(component: Component, schema: Schema) -> Attribut
     attribute.description = component.description
     attribute.max_occurs = component.max_occurs
     attribute.min_occurs = component.min_occurs
-    if component.type or component.format:
+    if component.type or component.format or component.ref:
         attribute.has_simple_type = create_model_element(
-            component.copy(omit=["enum", "title", "description"]), schema
+            component.omit(omit=["enum", "title", "description"]), schema
         )
     if component.enum:
         attribute.has_value_from = create_model_element(
-            component.copy(omit=["type", "format"]), schema
+            component.omit(omit=["type", "format"]), schema
         )
 
     return attribute
@@ -353,6 +359,11 @@ def _create_role_property(component: Component, schema: Schema) -> Role:
     role.description = component.description
     role.max_occurs = component.max_occurs
     role.min_occurs = component.min_occurs
-    role.has_object_type = create_model_element(component, schema)
+
+    title_string = component.title.get(None) if component.title else None
+    object_type_path = [*component.path, title_string] if title_string else [EMPTY_PATH]
+    role.has_object_type = create_model_element(
+        component.copy(path=object_type_path), schema
+    )
 
     return role

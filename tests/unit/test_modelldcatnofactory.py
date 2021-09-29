@@ -18,7 +18,10 @@ from rdflib.graph import Graph
 from jsonschematordf.component import Component
 import jsonschematordf.modelldcatnofactory as modelldcatno_factory
 from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
-from jsonschematordf.types.enums import EXTERNAL_REFERENCE, RECURSIVE_REFERENCE
+from jsonschematordf.types.enums import (
+    EXTERNAL_REFERENCE,
+    RECURSIVE_REFERENCE,
+)
 from tests.testutils import assert_isomorphic
 
 
@@ -417,17 +420,38 @@ def test_invalid_component_returns_no_element_or_property(
 
 
 @pytest.mark.unit
-def test_returns_correct_type_of_ref(mocker: MockerFixture) -> None:
+def test_determine_ref_type_returns_correct_type_of_ref(mocker: MockerFixture) -> None:
     """Test that reference type is correctly returned."""
     mock_component = mocker.MagicMock(spec=Component)
     mock_component.type = "string"
 
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.determine_reference_type",
+        return_value=RECURSIVE_REFERENCE,
+    )
+
     mock_schema = mocker.MagicMock()
     mocker.patch.object(
-        mock_schema, "get_components_by_path", return_value=mock_component
+        mock_schema, "get_components_by_path", return_value=[mock_component]
     )
 
     assert modelldcatno_factory._determine_ref_type("test", mock_schema) == "string"
+
+
+@pytest.mark.unit
+def test_determine_ref_type_returns_object_if_external(mocker: MockerFixture) -> None:
+    """Test that reference type is correctly returned."""
+    mock_component = mocker.MagicMock(spec=Component)
+    mock_component.type = "string"
+
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory.determine_reference_type",
+        return_value=EXTERNAL_REFERENCE,
+    )
+
+    mock_schema = mocker.MagicMock()
+
+    assert modelldcatno_factory._determine_ref_type("test", mock_schema) == "object"
 
 
 @pytest.mark.unit

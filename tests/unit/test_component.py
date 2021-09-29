@@ -136,11 +136,23 @@ def test_identifier_set_and_get() -> None:
 
 
 @pytest.mark.unit
-def test_copy() -> None:
+def test_omit() -> None:
     """Test Component copy funciton."""
     component = Component(path=["#"], type="string", title={None: "title"})
 
     expected = Component(path=["#"], type="string")
 
+    assert component.omit() == component
+    assert component.omit(omit=["title"]) == expected
+
+
+@pytest.mark.unit
+def test_copy() -> None:
+    """Test Component copy funciton."""
+    component = Component(path=["#"], type="string", title={None: "title"})
+
+    new_title = {None: "changed"}
+    expected = Component(path=["#"], type="string", title=new_title)
+
     assert component.copy() == component
-    assert component.copy(omit=["title"]) == expected
+    assert component.copy(title=new_title) == expected

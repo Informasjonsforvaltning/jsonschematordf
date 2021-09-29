@@ -148,7 +148,7 @@ class Component:
             and self.specializes == o.specializes
         )
 
-    def copy(self, omit: Optional[List[str]] = None) -> "Component":
+    def omit(self, omit: Optional[List[str]] = None) -> "Component":
         """Copy Component and optionally omit fields."""
         if omit is None:
             return deepcopy(self)
@@ -183,6 +183,65 @@ class Component:
                 min_occurs=self.min_occurs if "min_occurs" not in omit else None,
                 specializes=self.specializes if "specializes" not in omit else None,
             )
+
+    def copy(
+        self,
+        path: Optional[List[str]] = None,
+        type: Optional[str] = None,
+        title: Optional[Dict[None, str]] = None,
+        description: Optional[Dict[None, str]] = None,
+        pattern: Optional[str] = None,
+        format: Optional[str] = None,
+        required: Optional[List[str]] = None,
+        enum: Optional[List[str]] = None,
+        minimum: Optional[int] = None,
+        maximum: Optional[int] = None,
+        exclusive_minimum: Optional[bool] = None,
+        exclusive_maximum: Optional[bool] = None,
+        min_length: Optional[int] = None,
+        max_length: Optional[int] = None,
+        min_items: Optional[int] = None,
+        max_items: Optional[int] = None,
+        items: Optional["Component"] = None,
+        properties: Optional[List["Component"]] = None,
+        all_of: Optional[List["Component"]] = None,
+        one_of: Optional[List["Component"]] = None,
+        ref: Optional[str] = None,
+        max_occurs: Optional[str] = None,
+        min_occurs: Optional[int] = None,
+        specializes: Optional["Component"] = None,
+    ) -> "Component":
+        """Copy Component and optionally replace fields."""
+        return Component(
+            path=self.path if path is None else path,
+            type=self.type if type is None else type,
+            title=self.title if title is None else title,
+            description=self.description if description is None else description,
+            pattern=self.pattern if pattern is None else pattern,
+            format=self.format if format is None else format,
+            required=self.required if required is None else required,
+            enum=self.enum if enum is None else enum,
+            minimum=self.minimum if minimum is None else minimum,
+            maximum=self.maximum if maximum is None else maximum,
+            exclusive_minimum=self.exclusive_minimum
+            if exclusive_minimum is None
+            else exclusive_minimum,
+            exclusive_maximum=self.exclusive_maximum
+            if exclusive_maximum is None
+            else exclusive_maximum,
+            min_length=self.min_length if min_length is None else min_length,
+            max_length=self.max_length if max_length is None else max_length,
+            min_items=self.min_items if min_items is None else min_items,
+            max_items=self.max_items if max_items is None else max_items,
+            items=self.items if items is None else items,
+            properties=self.properties if properties is None else properties,
+            all_of=self.all_of if all_of is None else all_of,
+            one_of=self.one_of if one_of is None else one_of,
+            ref=self.ref if ref is None else ref,
+            max_occurs=self.max_occurs if max_occurs is None else max_occurs,
+            min_occurs=self.min_occurs if min_occurs is None else min_occurs,
+            specializes=self.specializes if specializes is None else specializes,
+        )
 
     @property
     def identifier(self) -> Optional[str]:
