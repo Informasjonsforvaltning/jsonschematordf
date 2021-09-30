@@ -608,12 +608,17 @@ def test_creates_valid_primitive_simple_type(mocker: MockerFixture) -> None:
     mock_component.type = type
     mock_component.format = None
 
+    mock_schema = mocker.MagicMock()
+    mocker.patch.object(mock_schema, "create_identifier", return_value=identifier)
+
     expected = SimpleType(identifier)
     expected.identifier = identifier
     expected.title = {None: type}
     expected.type_definition_reference = TYPE_DEFINITION_REFERENCE.get(type)
 
-    actual = modelldcatno_factory._create_primitive_simple_type(mock_component)
+    actual = modelldcatno_factory._create_primitive_simple_type(
+        mock_component, mock_schema
+    )
 
     g1 = Graph().parse(data=expected.to_rdf(), format="turtle")
     g2 = Graph().parse(data=actual.to_rdf(), format="turtle")

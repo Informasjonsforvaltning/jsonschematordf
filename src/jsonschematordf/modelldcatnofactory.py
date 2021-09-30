@@ -83,7 +83,7 @@ def create_model_element(
     if component_type == SIMPLE_TYPE:
         return _create_simple_type(component, schema)
     if component_type == PRIMITIVE_SIMPLE_TYPE:
-        return _create_primitive_simple_type(component)
+        return _create_primitive_simple_type(component, schema)
     if component_type == CODE_LIST:
         return _create_code_list(component, schema)
     return None
@@ -245,11 +245,11 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
     return simple_type
 
 
-def _create_primitive_simple_type(component: Component) -> SimpleType:
+def _create_primitive_simple_type(component: Component, schema: Schema) -> SimpleType:
     """Create primitive global simple type based on format or type."""
     title = component.format if component.format else component.type
 
-    simple_type = SimpleType(component.identifier)
+    simple_type = SimpleType(schema.create_identifier(title))
     simple_type.title = {None: title} if title else None
 
     if type_reference := TYPE_DEFINITION_REFERENCE.get(component.type):
