@@ -81,11 +81,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
     assert component.properties == [
         component_factory.create_component(
             child_path,
-            {
-                **properties.get("property_title", {}),
-                "title": "property_title",
-                "required": required,
-            },
+            {**properties.get("property_title", {}), "title": "property_title"},
         )
     ]
     assert component.all_of == [
@@ -106,7 +102,7 @@ def test_componentfactory_correctly_sets_multiplicities_correctly() -> None:
     title = "title"
 
     min_one_max_one = component_factory.create_component(
-        path, {"title": title, "required": [title]}
+        path, {"title": title, "isRequired": True}
     )
 
     assert min_one_max_one._min_occurs == 1
