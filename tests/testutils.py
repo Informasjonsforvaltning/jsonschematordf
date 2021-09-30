@@ -1,5 +1,7 @@
 """Utils for displaying debug information."""
 
+from typing import Generator
+
 from rdflib import Graph
 from rdflib.compare import graph_diff, isomorphic
 
@@ -34,3 +36,9 @@ def _dump_turtle(g: Graph) -> None:
     for _l in g.serialize(format="turtle").splitlines():
         if _l:
             print(_l.decode())
+
+
+def mock_uri_generator(base_uri: str) -> Generator[str, None, None]:
+    """Generator for mock_uris."""
+    for n in range(1000):
+        yield f"{base_uri}/mock_uri_{n}"
