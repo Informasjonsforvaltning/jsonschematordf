@@ -28,6 +28,7 @@ def create_component(path: List[str], json_schema_representation: Dict) -> Compo
     pattern = json_schema_representation.get("pattern")
     format = json_schema_representation.get("format")
     required = json_schema_representation.get("required")
+    is_required = json_schema_representation.get("isRequired")
     enum = json_schema_representation.get("enum")
     minimum = json_schema_representation.get("minimum")
     maximum = json_schema_representation.get("maximum")
@@ -48,7 +49,7 @@ def create_component(path: List[str], json_schema_representation: Dict) -> Compo
     else:
         max_occurs = "1"
 
-    if title is not None and required is not None and title in required:
+    if is_required:
         min_occurs = 1
     else:
         min_occurs = 0
@@ -80,7 +81,9 @@ def create_component(path: List[str], json_schema_representation: Dict) -> Compo
                 child_path,
                 {
                     "title": property_name,
-                    "required": required,
+                    "isRequired": property_name in required
+                    if property_name and required
+                    else None,
                     **properties.get(property_name, {}),
                 },
             )
