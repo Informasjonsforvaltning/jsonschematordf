@@ -148,41 +148,47 @@ class Component:
             and self.specializes == o.specializes
         )
 
-    def omit(self, omit: Optional[List[str]] = None) -> "Component":
-        """Copy Component and optionally omit fields."""
-        if omit is None:
-            return deepcopy(self)
+    def omit(
+        self, omit: List[str], new_path: Optional[List[str]] = None
+    ) -> "Component":
+        """Copy Component and omit fields."""
+        if new_path:
+            component_path = new_path
+        elif "path" in omit:
+            component_path = [EMPTY_PATH]
         else:
-            return Component(
-                path=self.path if "path" not in omit else [EMPTY_PATH],
-                type=self.type if "type" not in omit else None,
-                title=self.title if "title" not in omit else None,
-                description=self.description if "description" not in omit else None,
-                pattern=self.pattern if "pattern" not in omit else None,
-                format=self.format if "format" not in omit else None,
-                required=self.required if "required" not in omit else None,
-                enum=self.enum if "enum" not in omit else None,
-                minimum=self.minimum if "minimum" not in omit else None,
-                maximum=self.maximum if "maximum" not in omit else None,
-                exclusive_minimum=self.exclusive_minimum
-                if "exclusive_minimum" not in omit
-                else None,
-                exclusive_maximum=self.exclusive_maximum
-                if "exclusive_maximum" not in omit
-                else None,
-                min_length=self.min_length if "min_length" not in omit else None,
-                max_length=self.max_length if "max_length" not in omit else None,
-                min_items=self.min_items if "min_items" not in omit else None,
-                max_items=self.max_items if "max_items" not in omit else None,
-                items=self.items if "items" not in omit else None,
-                properties=self.properties if "properties" not in omit else None,
-                all_of=self.all_of if "all_of" not in omit else None,
-                one_of=self.one_of if "one_of" not in omit else None,
-                ref=self.ref if "ref" not in omit else None,
-                max_occurs=self.max_occurs if "max_occurs" not in omit else None,
-                min_occurs=self.min_occurs if "min_occurs" not in omit else None,
-                specializes=self.specializes if "specializes" not in omit else None,
-            )
+            component_path = self.path
+
+        return Component(
+            path=component_path,
+            type=self.type if "type" not in omit else None,
+            title=self.title if "title" not in omit else None,
+            description=self.description if "description" not in omit else None,
+            pattern=self.pattern if "pattern" not in omit else None,
+            format=self.format if "format" not in omit else None,
+            required=self.required if "required" not in omit else None,
+            enum=self.enum if "enum" not in omit else None,
+            minimum=self.minimum if "minimum" not in omit else None,
+            maximum=self.maximum if "maximum" not in omit else None,
+            exclusive_minimum=self.exclusive_minimum
+            if "exclusive_minimum" not in omit
+            else None,
+            exclusive_maximum=self.exclusive_maximum
+            if "exclusive_maximum" not in omit
+            else None,
+            min_length=self.min_length if "min_length" not in omit else None,
+            max_length=self.max_length if "max_length" not in omit else None,
+            min_items=self.min_items if "min_items" not in omit else None,
+            max_items=self.max_items if "max_items" not in omit else None,
+            items=self.items if "items" not in omit else None,
+            properties=self.properties if "properties" not in omit else None,
+            all_of=self.all_of if "all_of" not in omit else None,
+            one_of=self.one_of if "one_of" not in omit else None,
+            ref=self.ref if "ref" not in omit else None,
+            max_occurs=self.max_occurs if "max_occurs" not in omit else None,
+            min_occurs=self.min_occurs if "min_occurs" not in omit else None,
+            specializes=self.specializes if "specializes" not in omit else None,
+        )
 
     def copy(
         self,
@@ -213,14 +219,16 @@ class Component:
     ) -> "Component":
         """Copy Component and optionally replace fields."""
         return Component(
-            path=self.path if path is None else path,
+            path=deepcopy(self.path) if path is None else path,
             type=self.type if type is None else type,
-            title=self.title if title is None else title,
-            description=self.description if description is None else description,
+            title=deepcopy(self.title) if title is None else title,
+            description=deepcopy(self.description)
+            if description is None
+            else description,
             pattern=self.pattern if pattern is None else pattern,
             format=self.format if format is None else format,
-            required=self.required if required is None else required,
-            enum=self.enum if enum is None else enum,
+            required=deepcopy(self.required) if required is None else required,
+            enum=deepcopy(self.enum) if enum is None else enum,
             minimum=self.minimum if minimum is None else minimum,
             maximum=self.maximum if maximum is None else maximum,
             exclusive_minimum=self.exclusive_minimum
@@ -233,14 +241,16 @@ class Component:
             max_length=self.max_length if max_length is None else max_length,
             min_items=self.min_items if min_items is None else min_items,
             max_items=self.max_items if max_items is None else max_items,
-            items=self.items if items is None else items,
-            properties=self.properties if properties is None else properties,
-            all_of=self.all_of if all_of is None else all_of,
-            one_of=self.one_of if one_of is None else one_of,
+            items=deepcopy(self.items) if items is None else items,
+            properties=deepcopy(self.properties) if properties is None else properties,
+            all_of=deepcopy(self.all_of) if all_of is None else all_of,
+            one_of=deepcopy(self.one_of) if one_of is None else one_of,
             ref=self.ref if ref is None else ref,
             max_occurs=self.max_occurs if max_occurs is None else max_occurs,
             min_occurs=self.min_occurs if min_occurs is None else min_occurs,
-            specializes=self.specializes if specializes is None else specializes,
+            specializes=deepcopy(self.specializes)
+            if specializes is None
+            else specializes,
         )
 
     @property

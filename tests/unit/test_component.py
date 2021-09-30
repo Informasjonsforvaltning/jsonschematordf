@@ -2,6 +2,7 @@
 import pytest
 
 from jsonschematordf.component import Component
+from jsonschematordf.types.enums import EMPTY_PATH
 
 
 @pytest.mark.unit
@@ -140,10 +141,9 @@ def test_omit() -> None:
     """Test Component copy funciton."""
     component = Component(path=["#"], type="string", title={None: "title"})
 
-    expected = Component(path=["#"], type="string")
-
-    assert component.omit() == component
-    assert component.omit(omit=["title"]) == expected
+    assert component.omit(["title"]) == Component(path=["#"], type="string")
+    assert component.omit(["path"]).path == [EMPTY_PATH]
+    assert component.omit(["title"], new_path=["#", "schema"]).path == ["#", "schema"]
 
 
 @pytest.mark.unit

@@ -31,7 +31,7 @@ from jsonschematordf.types.enums import (
     SIMPLE_TYPE_ARRAY,
     SPECIALIZES,
 )
-from jsonschematordf.utils import determine_reference_type
+from jsonschematordf.utils import add_to_path, determine_reference_type
 
 
 def create_model_property(
@@ -295,13 +295,18 @@ def _create_attribute_property(component: Component, schema: Schema) -> Attribut
     attribute.description = component.description
     attribute.max_occurs = component.max_occurs
     attribute.min_occurs = component.min_occurs
+
+    child_path = add_to_path(
+        component.path, component.title.get(None) if component.title else None
+    )
     if component.type or component.format or component.ref:
         attribute.has_simple_type = create_model_element(
-            component.omit(omit=["enum", "title", "description"]), schema
+            component.omit(["enum", "title", "description"], new_path=child_path),
+            schema,
         )
     if component.enum:
         attribute.has_value_from = create_model_element(
-            component.omit(omit=["type", "format"]), schema
+            component.copy(path=child_path), schema
         )
 
     return attribute
@@ -360,8 +365,9 @@ def _create_role_property(component: Component, schema: Schema) -> Role:
     role.max_occurs = component.max_occurs
     role.min_occurs = component.min_occurs
 
-    title_string = component.title.get(None) if component.title else None
-    object_type_path = [*component.path, title_string] if title_string else [EMPTY_PATH]
+    object_type_path = add_to_path(
+        component.path, component.title.get(None) if component.title else None
+    )
     role.has_object_type = create_model_element(
         component.copy(path=object_type_path), schema
     )
