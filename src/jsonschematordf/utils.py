@@ -1,5 +1,5 @@
 """Utility functions module."""
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from datacatalogtordf.uri import InvalidURIError, URI
 
@@ -32,3 +32,11 @@ def determine_reference_type(reference: Optional[str]) -> Optional[str]:
             except InvalidURIError:
                 return None
     return None
+
+
+def add_to_path(path: List[str], to_add: Optional[str]) -> List[str]:
+    """Adds postfix to path list if exists, else returns empty path."""
+    if to_add:
+        return [*path, to_add]
+    else:
+        return [EMPTY_PATH]
