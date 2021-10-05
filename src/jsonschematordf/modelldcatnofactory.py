@@ -123,7 +123,7 @@ def _resolve_recursive_reference(
 
     for component in reference_components:
         element = create_model_element(component, schema)
-        if isinstance(element, ModelElement):
+        if isinstance(element, ModelElement) or isinstance(element, CodeList):
             model_elements.append(element)
         if isinstance(element, URI):
             uri = element
@@ -156,7 +156,7 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
         return CHOICE
     if component.enum:
         return CODE_LIST
-    if component.type == "object" or ref_type == "object" or component.properties:
+    if component.type == "object" or component.properties:
         return OBJECT_TYPE
     if (
         component.type in TYPE_DEFINITION_REFERENCE.keys()
@@ -176,7 +176,7 @@ def _determine_component_type(component: Component, schema: Schema) -> Optional[
             return SIMPLE_TYPE
         return PRIMITIVE_SIMPLE_TYPE
 
-    return None
+    return ref_type
 
 
 def _determine_ref_type(ref: str, schema: Schema) -> Optional[str]:
@@ -187,7 +187,7 @@ def _determine_ref_type(ref: str, schema: Schema) -> Optional[str]:
         if len(referenced_components) >= 1 and isinstance(
             referenced_components[0], Component
         ):
-            return referenced_components[0].type
+            return _determine_component_type(referenced_components[0], schema)
 
     elif reference_type == EXTERNAL_REFERENCE:
         return "object"
@@ -201,9 +201,12 @@ def _create_object_type(component: Component, schema: Schema) -> ObjectType:
     object_type.description = component.description
 
     if component.properties:
-        object_type.has_property = [
+        model_properties = [
             create_model_property(model_property, schema)
             for model_property in component.properties
+        ]
+        object_type.has_property = [
+            property for property in model_properties if property
         ]
 
     return object_type
@@ -237,10 +240,12 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
         specialization_component = Component(
             [*component.path, "specializes"], specializes=primitive_simple_type
         )
-
-        simple_type.has_property = [
-            create_model_property(specialization_component, schema)
-        ]
+        specialization_property = create_model_property(
+            specialization_component, schema
+        )
+        simple_type.has_property = (
+            [specialization_property] if specialization_property else None
+        )
 
     return simple_type
 
@@ -299,12 +304,18 @@ def _create_attribute_property(component: Component, schema: Schema) -> Attribut
     child_path = add_to_path(
         component.path, component.title.get(None) if component.title else None
     )
-    if component.type or component.format or component.ref:
+
+    contains_simple_type = _determine_component_type(
+        component.omit(["enum", "title", "description"]), schema
+    ) in [SIMPLE_TYPE, PRIMITIVE_SIMPLE_TYPE]
+    contains_code_list = _determine_component_type(component, schema) == CODE_LIST
+
+    if contains_simple_type:
         attribute.has_simple_type = create_model_element(
             component.omit(["enum", "title", "description"], new_path=child_path),
             schema,
         )
-    if component.enum:
+    if contains_code_list:
         attribute.has_value_from = create_model_element(
             component.copy(path=child_path), schema
         )
@@ -320,9 +331,10 @@ def _create_choice_property(component: Component, schema: Schema) -> Attribute:
     choice.max_occurs = component.max_occurs
     choice.min_occurs = component.min_occurs
     if component.one_of:
-        choice.has_some = [
+        one_of_elements = [
             create_model_element(item, schema) for item in component.one_of
         ]
+        choice.has_some = [element for element in one_of_elements if element]
 
     return choice
 
