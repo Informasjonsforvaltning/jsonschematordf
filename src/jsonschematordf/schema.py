@@ -45,15 +45,21 @@ class Schema:
     def get_components_by_path(self, path: str) -> List[Component]:
         """Attempt to get component by reference path."""
         path_list = path.split("/")
+        return self.get_components_by_path_list(path_list)
+
+    def get_components_by_path_list(self, path_list: List[str]) -> List[Component]:
+        """Attempt to get component by reference path."""
         non_relative_path = path_list[1:]
         component_title = path_list[-1]
+        path_without_title = path_list[:-1]
 
         component_representation = nested_get(
             self.__json_schema_representation, *non_relative_path
         )
         if isinstance(component_representation, Dict):
             return component_factory.create_components(
-                path_list, {"title": component_title, **component_representation}
+                path_without_title,
+                {"title": component_title, **component_representation},
             )
         else:
             return []
@@ -87,8 +93,9 @@ class Schema:
         """Create identifier for component."""
         if component_path:
             try:
-                component_uri = f"{self.base_uri}/{component_path}"
+                component_uri = self.base_uri + component_path
                 return URI(component_uri)
             except InvalidURIError:
                 pass
+
         return Skolemizer.add_skolemization()

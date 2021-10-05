@@ -12,6 +12,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
     path = ["#", "path"]
     type = "type"
     title = "title"
+    complete_path = "/path#title"
     description = "description"
     pattern = "pattern"
     format = "format"
@@ -61,7 +62,7 @@ def test_component_creator_sets_all_fields_correctly() -> None:
     assert component.path == path
     assert component.type == type
     assert component.title == {None: title}
-    assert component.complete_path == f"#{title}"
+    assert component.complete_path == complete_path
     assert component.description == {None: description}
     assert component.pattern == pattern
     assert component.format == format
