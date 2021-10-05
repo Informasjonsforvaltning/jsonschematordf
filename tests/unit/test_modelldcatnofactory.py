@@ -19,8 +19,10 @@ from jsonschematordf.component import Component
 import jsonschematordf.modelldcatnofactory as modelldcatno_factory
 from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
 from jsonschematordf.types.enums import (
+    CODE_LIST,
     EXTERNAL_REFERENCE,
     RECURSIVE_REFERENCE,
+    SIMPLE_TYPE,
 )
 from tests.testutils import assert_isomorphic
 
@@ -424,6 +426,12 @@ def test_determine_ref_type_returns_correct_type_of_ref(mocker: MockerFixture) -
     """Test that reference type is correctly returned."""
     mock_component = mocker.MagicMock(spec=Component)
     mock_component.type = "string"
+    mock_component.items = None
+    mock_component.ref = None
+    mock_component.specializes = None
+    mock_component.one_of = None
+    mock_component.enum = None
+    mock_component.properties = None
 
     mocker.patch(
         "jsonschematordf.modelldcatnofactory.determine_reference_type",
@@ -435,7 +443,7 @@ def test_determine_ref_type_returns_correct_type_of_ref(mocker: MockerFixture) -
         mock_schema, "get_components_by_path", return_value=[mock_component]
     )
 
-    assert modelldcatno_factory._determine_ref_type("test", mock_schema) == "string"
+    assert modelldcatno_factory._determine_ref_type("test", mock_schema) == SIMPLE_TYPE
 
 
 @pytest.mark.unit
@@ -443,6 +451,7 @@ def test_determine_ref_type_returns_object_if_external(mocker: MockerFixture) ->
     """Test that reference type is correctly returned."""
     mock_component = mocker.MagicMock(spec=Component)
     mock_component.type = "string"
+    mock_component.ref = None
 
     mocker.patch(
         "jsonschematordf.modelldcatnofactory.determine_reference_type",
@@ -726,14 +735,19 @@ def test_creates_attribute_model_property(mocker: MockerFixture) -> None:
     min_occurs = "1"
 
     mock_component = mocker.MagicMock()
+    mocker.patch.object(mock_component, "omit", return_value=mock_component)
     mock_component.identifier = attribute_identifier
     mock_component.title = title
     mock_component.description = description
     mock_component.type = type
-    mock_component.format = None
     mock_component.min_occurs = min_occurs
     mock_component.max_occurs = max_occurs
+    mock_component.items = None
+    mock_component.specializes = None
+    mock_component.one_of = None
     mock_component.enum = None
+    mock_component.properties = None
+    mock_component.ref = None
 
     mock_schema = mocker.MagicMock()
 
@@ -769,6 +783,7 @@ def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
     enum = ["1", "2", "3"]
 
     mock_component = mocker.MagicMock()
+    mocker.patch.object(mock_component, "omit", return_value=mock_component)
     mock_component.identifier = identifier
     mock_component.type = type
     mock_component.enum = enum
@@ -776,6 +791,11 @@ def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
     mock_component.description = None
     mock_component.max_occurs = None
     mock_component.min_occurs = None
+    mock_component.items = None
+    mock_component.specializes = None
+    mock_component.one_of = None
+    mock_component.properties = None
+    mock_component.ref = None
 
     mock_schema = mocker.MagicMock()
 
@@ -783,6 +803,10 @@ def test_attribute_creates_code_list(mocker: MockerFixture) -> None:
     expected.has_simple_type = simple_type_identifier
     expected.has_value_from = code_list_identifier
 
+    mocker.patch(
+        "jsonschematordf.modelldcatnofactory._determine_component_type",
+        side_effect=[SIMPLE_TYPE, CODE_LIST],
+    )
     mocker.patch(
         "jsonschematordf.modelldcatnofactory.create_model_element",
         side_effect=[simple_type_identifier, code_list_identifier],
