@@ -69,18 +69,19 @@ def test_unused_path__returns_empty_list() -> None:
 def test_parsed_components_get_and_set(mocker: MockerFixture) -> None:
     """Test getting and setting of parsed components."""
     base_uri = "https://uri.com"
-    complete_path = "/path/to/component#Test"
-    identifier = f"{base_uri}{complete_path}"
+    complete_path = ["path", "to", "component", "test"]
+    path_string = "/".join(complete_path)
+    identifier = f"{base_uri}/{path_string}#{complete_path[-1]}"
 
     mock_component = mocker.MagicMock()
-    mock_component.complete_path = complete_path
+    mock_component.complete_path = path_string
     mock_component.identifier = identifier
 
     schema = Schema(base_uri, {})
 
     schema.add_parsed_component(mock_component)
 
-    component_uri = schema.get_parsed_component_uri(complete_path)
+    component_uri = schema.get_parsed_component_uri(path_string)
 
     assert component_uri == identifier
 
@@ -132,16 +133,14 @@ def test_orphan_element_graph_creation() -> None:
 
 
 @pytest.mark.unit
-def test_create_valid_identifier(mocker: MockerFixture) -> None:
+def test_create_valid_identifier() -> None:
     """Test that valid attributes produces expeceted identifier."""
-    title = "title"
-    component_path = "components/schemas"
     base_uri = "http://uri.com"
-    complete_path = f"{component_path}#{title}"
+    complete_path = "/path/#component"
 
     schema = Schema(base_uri, {})
 
-    expected = f"{base_uri}/{component_path}#{title}"
+    expected = f"{base_uri}{complete_path}"
     actual = schema.create_identifier(complete_path)
 
     assert expected == actual
@@ -152,12 +151,8 @@ def test_create_invalid_identifier_returns_skolemized_identifier(
     mocker: MockerFixture,
 ) -> None:
     """Test that invalid attributes produces skolemized identifier."""
-    title = "!!"
     component_path = "<path>"
     base_uri = "http://uri.com"
-    mock_component = mocker.MagicMock()
-    mock_component.path = f"#/{component_path}"
-    mock_component.title = {None: title}
 
     schema = Schema(base_uri, {})
 
@@ -165,26 +160,7 @@ def test_create_invalid_identifier_returns_skolemized_identifier(
     skolemizer_mock = mocker.patch(
         "skolemizer.Skolemizer.add_skolemization", return_value=expected,
     )
-    actual = schema.create_identifier(mock_component)
-
-    assert expected == actual
-    skolemizer_mock.assert_called_once
-
-
-@pytest.mark.unit
-def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
-    """Test that missing title produces skolemized identifier."""
-    mock_component = mocker.MagicMock()
-    mock_component.title = None
-
-    schema = Schema("test", {})
-
-    expected = "skolemized_id"
-    skolemizer_mock = mocker.patch(
-        "skolemizer.Skolemizer.add_skolemization", return_value=expected,
-    )
-
-    actual = schema.create_identifier(mock_component)
+    actual = schema.create_identifier(component_path)
 
     assert expected == actual
     skolemizer_mock.assert_called_once
@@ -193,9 +169,6 @@ def test_no_title_returns_skolemized_identifier(mocker: MockerFixture) -> None:
 @pytest.mark.unit
 def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
     """Test that missing path produces skolemized identifier."""
-    mock_component = mocker.MagicMock()
-    mock_component.path = None
-
     schema = Schema("test", {})
 
     expected = "skolemized_id"
@@ -203,7 +176,7 @@ def test_no_path_returns_skolemized_identifier(mocker: MockerFixture) -> None:
         "skolemizer.Skolemizer.add_skolemization", return_value=expected,
     )
 
-    actual = schema.create_identifier(mock_component)
+    actual = schema.create_identifier(None)
 
     assert expected == actual
     skolemizer_mock.assert_called_once

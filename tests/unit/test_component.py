@@ -8,10 +8,10 @@ from jsonschematordf.types.enums import EMPTY_PATH
 @pytest.mark.unit
 def test_component_sets_fields_correctly() -> None:
     """Test intializing Component object."""
-    path = ["#", "path"]
+    path = ["#"]
     type = "type"
     title = {None: "title"}
-    complete_path = "#title"
+    complete_path = "/#title"
     description = {None: "description"}
     pattern = "pattern"
     format = "format"

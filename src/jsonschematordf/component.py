@@ -266,12 +266,18 @@ class Component:
     @property
     def complete_path(self) -> Optional[str]:
         """Constructs complete path to component."""
-        path_string_without_title_and_recursion_char = "/".join(self._path[2:])
         title_string = self._title.get(None) if self._title else None
-        if title_string:
-            return f"{path_string_without_title_and_recursion_char}#{title_string}"
-        else:
+        if title_string is None:
             return None
+
+        non_recursive_path = (
+            self._path[1:] if self._path[0] == EMPTY_PATH else self._path
+        )
+
+        if len(non_recursive_path) > 0:
+            return "/" + "/".join(non_recursive_path) + "#" + title_string
+        else:
+            return "/#" + title_string
 
     @property
     def path(self) -> List[str]:
