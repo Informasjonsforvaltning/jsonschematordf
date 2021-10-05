@@ -1,11 +1,14 @@
 """Utility functions module."""
-from typing import Any, Dict, List, Optional
+from copy import deepcopy
+from typing import Any, Dict, List, Optional, Union
 
 from datacatalogtordf.uri import InvalidURIError, URI
+from modelldcatnotordf.modelldcatno import CodeElement, ModelElement
+from rdflib.graph import Graph
 
 from jsonschematordf.types.enums import (
-    EMPTY_PATH,
     EXTERNAL_REFERENCE,
+    RECURSIVE_CHARACTER,
     RECURSIVE_REFERENCE,
 )
 
@@ -23,7 +26,7 @@ def nested_get(dictionary: Dict, *keys: str) -> Optional[Any]:
 def determine_reference_type(reference: Optional[str]) -> Optional[str]:
     """Determine whether refernce string is recursive, external, or invalid."""
     if reference:
-        if reference.startswith(EMPTY_PATH):
+        if reference.startswith(RECURSIVE_CHARACTER):
             return RECURSIVE_REFERENCE
         if reference.startswith("http"):
             try:
@@ -39,4 +42,15 @@ def add_to_path(path: List[str], to_add: Optional[str]) -> List[str]:
     if to_add:
         return [*path, to_add]
     else:
-        return [EMPTY_PATH]
+        return [RECURSIVE_CHARACTER]
+
+
+def add_elements_to_graph(
+    graph: Graph, elements: List[Union[ModelElement, CodeElement]]
+) -> Graph:
+    """Get Graph containing all elements."""
+    out_graph = deepcopy(graph)
+    for element in elements:
+        out_graph.parse(data=element.to_rdf(format="turtle"), format="turtle")
+
+    return out_graph

@@ -2,7 +2,7 @@
 from typing import Dict, List, Optional
 
 from jsonschematordf.component import Component
-from jsonschematordf.types.enums import EMPTY_PATH
+from jsonschematordf.types.enums import RECURSIVE_CHARACTER
 
 
 def create_components(
@@ -54,7 +54,7 @@ def create_component(path: List[str], json_schema_representation: Dict) -> Compo
     else:
         min_occurs = 0
 
-    child_path = [*path, title] if title else [EMPTY_PATH]
+    child_path = [*path, title] if title else [RECURSIVE_CHARACTER]
 
     return Component(
         path=component_path,

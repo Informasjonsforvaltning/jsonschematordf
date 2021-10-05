@@ -1,12 +1,19 @@
 """pytests."""
 
+from modelldcatnotordf.modelldcatno import ObjectType
 import pytest
+from rdflib.graph import Graph
 
 from jsonschematordf.types.enums import (
     EXTERNAL_REFERENCE,
     RECURSIVE_REFERENCE,
 )
-from jsonschematordf.utils import determine_reference_type, nested_get
+from jsonschematordf.utils import (
+    add_elements_to_graph,
+    determine_reference_type,
+    nested_get,
+)
+from tests.testutils import assert_isomorphic
 
 
 @pytest.mark.unit
@@ -59,3 +66,18 @@ def test_invalid_uri_should_return_none() -> None:
     """Invalid URI should raise exception."""
     reference = "http://uri<.com"
     determine_reference_type(reference)
+
+
+@pytest.mark.unit
+def test_add_elemets_to_graph() -> None:
+    """Test that elements are added to graph."""
+    element_1 = ObjectType("http://uri1.com")
+    element_2 = ObjectType("http://uri2.com")
+
+    expected = Graph()
+    expected.parse(data=element_1.to_rdf(format="turtle"), format="turtle")
+    expected.parse(data=element_2.to_rdf(format="turtle"), format="turtle")
+
+    actual = add_elements_to_graph(Graph(), [element_1, element_2])
+
+    assert_isomorphic(expected, actual)

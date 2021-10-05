@@ -21,11 +21,11 @@ from jsonschematordf.types.constants import TYPE_DEFINITION_REFERENCE
 from jsonschematordf.types.enums import (
     CHOICE,
     CODE_LIST,
-    EMPTY_PATH,
     EXTERNAL_REFERENCE,
     OBJECT_ARRAY,
     OBJECT_TYPE,
     PRIMITIVE_SIMPLE_TYPE,
+    RECURSIVE_CHARACTER,
     RECURSIVE_REFERENCE,
     SIMPLE_TYPE,
     SIMPLE_TYPE_ARRAY,
@@ -123,7 +123,7 @@ def _resolve_recursive_reference(
 
     for component in reference_components:
         element = create_model_element(component, schema)
-        if isinstance(element, ModelElement) or isinstance(element, CodeList):
+        if isinstance(element, ModelElement):
             model_elements.append(element)
         if isinstance(element, URI):
             uri = element
@@ -235,7 +235,7 @@ def _create_simple_type(component: Component, schema: Schema) -> SimpleType:
 
     if component.title and (component.type or component.format):
         primitive_simple_type = Component(
-            [EMPTY_PATH], format=component.format, type=component.type
+            [RECURSIVE_CHARACTER], format=component.format, type=component.type
         )
         specialization_component = Component(
             [*component.path, "specializes"], specializes=primitive_simple_type

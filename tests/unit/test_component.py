@@ -2,7 +2,7 @@
 import pytest
 
 from jsonschematordf.component import Component
-from jsonschematordf.types.enums import EMPTY_PATH
+from jsonschematordf.types.enums import RECURSIVE_CHARACTER
 
 
 @pytest.mark.unit
@@ -142,7 +142,7 @@ def test_omit() -> None:
     component = Component(path=["#"], type="string", title={None: "title"})
 
     assert component.omit(["title"]) == Component(path=["#"], type="string")
-    assert component.omit(["path"]).path == [EMPTY_PATH]
+    assert component.omit(["path"]).path == [RECURSIVE_CHARACTER]
     assert component.omit(["title"], new_path=["#", "schema"]).path == ["#", "schema"]
 
 
