@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from datacatalogtordf.uri import URI
 
-from jsonschematordf.types.enums import EMPTY_PATH
+from jsonschematordf.types.enums import RECURSIVE_CHARACTER
 
 
 class Component:
@@ -155,7 +155,7 @@ class Component:
         if new_path:
             component_path = new_path
         elif "path" in omit:
-            component_path = [EMPTY_PATH]
+            component_path = [RECURSIVE_CHARACTER]
         else:
             component_path = self.path
 
@@ -271,7 +271,7 @@ class Component:
             return None
 
         non_recursive_path = (
-            self._path[1:] if self._path[0] == EMPTY_PATH else self._path
+            self._path[1:] if self._path[0] == RECURSIVE_CHARACTER else self._path
         )
 
         if len(non_recursive_path) > 0:

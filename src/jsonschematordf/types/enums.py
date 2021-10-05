@@ -1,6 +1,6 @@
 """Enums module."""
 
-EMPTY_PATH = "#"
+RECURSIVE_CHARACTER = "#"
 
 OBJECT_TYPE = "object_type"
 SIMPLE_TYPE = "simple_type"

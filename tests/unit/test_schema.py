@@ -3,12 +3,10 @@ from datacatalogtordf.exceptions import InvalidURIError
 from modelldcatnotordf.modelldcatno import CodeElement, ObjectType
 import pytest
 from pytest_mock import MockerFixture
-from rdflib import Graph
 
 
 from jsonschematordf.component import Component
 from jsonschematordf.schema import Schema
-from tests.testutils import assert_isomorphic
 
 
 @pytest.mark.unit
@@ -106,7 +104,7 @@ def test_set_parsed_component_with_invalid_uri_throws_exception(
 
 
 @pytest.mark.unit
-def test_orphan_element_graph_creation() -> None:
+def test_add_orphan_elements() -> None:
     """Test that orphan elements are added and that the returned graph is correct."""
     base_uri = "https://uri.com"
     code_element_uri = f"{base_uri}#CodeElement"
@@ -117,19 +115,13 @@ def test_orphan_element_graph_creation() -> None:
 
     schema = Schema(base_uri, {})
 
+    expected = [code_element, object_type]
+
     schema.add_orphan_elements([code_element, object_type])
 
-    expected = """
-    @prefix modelldcatno: <https://data.norge.no/vocabulary/modelldcatno#> .
-    <https://uri.com#CodeElement> a modelldcatno:CodeElement .
-    <https://uri.com#ObjectType> a modelldcatno:ObjectType .
-    """
+    actual = schema.orphan_elements
 
-    actual = schema.get_orphan_elements_graph()
-
-    expected = Graph().parse(data=expected, format="turtle")
-
-    assert_isomorphic(expected, actual)
+    assert expected == actual
 
 
 @pytest.mark.unit

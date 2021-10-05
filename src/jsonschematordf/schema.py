@@ -4,11 +4,11 @@ from typing import Any, Dict, List, Optional, Union
 
 from datacatalogtordf.uri import InvalidURIError, URI
 from modelldcatnotordf.modelldcatno import CodeElement, ModelElement
-from rdflib import Graph
 from skolemizer import Skolemizer
 
 from jsonschematordf.component import Component
 import jsonschematordf.componentfactory as component_factory
+from jsonschematordf.types.enums import RECURSIVE_CHARACTER
 from jsonschematordf.utils import nested_get
 
 
@@ -42,6 +42,11 @@ class Schema:
         """Getter for base URI."""
         return self.__base_uri
 
+    @property
+    def orphan_elements(self) -> List[Union[ModelElement, CodeElement]]:
+        """Getter for orphan elements."""
+        return self.__orphans
+
     def get_components_by_path(self, path: str) -> List[Component]:
         """Attempt to get component by reference path."""
         path_list = path.split("/")
@@ -49,7 +54,9 @@ class Schema:
 
     def get_components_by_path_list(self, path_list: List[str]) -> List[Component]:
         """Attempt to get component by reference path."""
-        non_relative_path = path_list[1:]
+        non_relative_path = (
+            path_list[1:] if path_list[0] == RECURSIVE_CHARACTER else path_list
+        )
         component_title = path_list[-1]
         path_without_title = path_list[:-1]
 
@@ -80,14 +87,6 @@ class Schema:
     ) -> None:
         """Add orphan elements to be included in final graph."""
         self.__orphans.extend(orphans)
-
-    def get_orphan_elements_graph(self) -> Graph:
-        """Get Graph containing all orphan elements."""
-        out_graph = Graph()
-        for orphan_element in self.__orphans:
-            out_graph.parse(data=orphan_element.to_rdf(), format="turtle")
-
-        return out_graph
 
     def create_identifier(self, component_path: Optional[str]) -> URI:
         """Create identifier for component."""
