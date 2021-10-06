@@ -1,5 +1,5 @@
 """Pytests."""
-from typing import List
+from typing import Dict, List
 
 import pytest
 from pytest_mock.plugin import MockerFixture
@@ -10,6 +10,7 @@ from jsonschematordf.parse import (
     json_schema_to_modelldcatno,
 )
 from jsonschematordf.parsedschema import ParsedSchema
+from jsonschematordf.schema import Schema
 
 
 @pytest.mark.unit
@@ -76,8 +77,9 @@ def test_json_schema_to_modelldcatno_returns_empty() -> None:
 @pytest.mark.unit
 def test_json_schema_component_to_modelldcatno(mocker: MockerFixture) -> None:
     """Test that components are parsed and added to graph."""
-    json_schema_string = "{ 'schemas': { 'Element': { 'type': 'object' } } }"
+    json_schema_dict = {"schemas": {"Element": {"type": "object"}}}
     base_uri = "http://uri.com"
+    schema = Schema(base_uri, json_schema_dict)
     path = ["schemas", "Element"]
 
     mock_element = mocker.MagicMock()
@@ -95,7 +97,7 @@ def test_json_schema_component_to_modelldcatno(mocker: MockerFixture) -> None:
     )
 
     model_elements, orphan_elements = json_schema_component_to_modelldcatno(
-        json_schema_string, base_uri, path
+        schema, path
     )
     assert model_elements == [mock_element]
     assert isinstance(orphan_elements, mocker.MagicMock)
@@ -106,12 +108,11 @@ def test_json_schema_component_to_modelldcatno(mocker: MockerFixture) -> None:
 @pytest.mark.unit
 def test_json_schema_component_to_modelldcatno_returns_empty() -> None:
     """Test that empty ParsedSchema is returned if invalid JSON Schema is passed."""
-    json_schema_string = ""
+    json_schema_dict: Dict[str, str] = {}
     base_uri = "http://uri.com"
+    schema = Schema(base_uri, json_schema_dict)
     path: List[str] = []
 
-    parsed_schema = json_schema_component_to_modelldcatno(
-        json_schema_string, base_uri, path
-    )
+    parsed_schema = json_schema_component_to_modelldcatno(schema, path)
 
     assert ParsedSchema() == parsed_schema

@@ -271,7 +271,9 @@ class Component:
             return None
 
         non_recursive_path = (
-            self._path[1:] if self._path[0] == RECURSIVE_CHARACTER else self._path
+            self._path[1:]
+            if self.path and self._path[0] == RECURSIVE_CHARACTER
+            else self._path
         )
 
         if len(non_recursive_path) > 0:

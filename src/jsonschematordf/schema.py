@@ -54,22 +54,22 @@ class Schema:
 
     def get_components_by_path_list(self, path_list: List[str]) -> List[Component]:
         """Attempt to get component by reference path."""
-        non_relative_path = (
-            path_list[1:] if path_list[0] == RECURSIVE_CHARACTER else path_list
-        )
-        component_title = path_list[-1]
-        path_without_title = path_list[:-1]
-
-        component_representation = nested_get(
-            self.__json_schema_representation, *non_relative_path
-        )
-        if isinstance(component_representation, Dict):
-            return component_factory.create_components(
-                path_without_title,
-                {"title": component_title, **component_representation},
+        if len(path_list) > 0:
+            non_relative_path = (
+                path_list[1:] if path_list[0] == RECURSIVE_CHARACTER else path_list
             )
-        else:
-            return []
+            component_title = path_list[-1]
+            path_without_title = path_list[:-1]
+
+            component_representation = nested_get(
+                self.__json_schema_representation, *non_relative_path
+            )
+            if isinstance(component_representation, Dict):
+                return component_factory.create_components(
+                    path_without_title,
+                    {"title": component_title, **component_representation},
+                )
+        return []
 
     def add_parsed_component(self, component: Component) -> None:
         """Add a modelldcatno component or URI to parsed components cache."""
