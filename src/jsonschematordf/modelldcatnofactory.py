@@ -45,7 +45,7 @@ def create_model_property(
     schema.add_parsed_component(component)
     component_type = _determine_component_type(component, schema)
 
-    if component_type == OBJECT_TYPE:
+    if component_type == OBJECT_TYPE or component_type == EXTERNAL_REFERENCE:
         return _create_role_property(component, schema)
     if (
         component_type == SIMPLE_TYPE
@@ -190,7 +190,7 @@ def _determine_ref_type(ref: str, schema: Schema) -> Optional[str]:
             return _determine_component_type(referenced_components[0], schema)
 
     elif reference_type == EXTERNAL_REFERENCE:
-        return "object"
+        return reference_type
     return None
 
 

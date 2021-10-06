@@ -51,6 +51,7 @@ def add_elements_to_graph(
     """Get Graph containing all elements."""
     out_graph = deepcopy(graph)
     for element in elements:
-        out_graph.parse(data=element.to_rdf(format="turtle"), format="turtle")
+        if isinstance(element, ModelElement) or isinstance(element, CodeElement):
+            out_graph.parse(data=element.to_rdf(format="turtle"), format="turtle")
 
     return out_graph

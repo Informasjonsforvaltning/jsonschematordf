@@ -1,5 +1,5 @@
 """pytests."""
-
+from datacatalogtordf import URI
 from modelldcatnotordf.modelldcatno import ObjectType
 import pytest
 from rdflib.graph import Graph
@@ -69,15 +69,16 @@ def test_invalid_uri_should_return_none() -> None:
 
 
 @pytest.mark.unit
-def test_add_elemets_to_graph() -> None:
+def test_add_elements_to_graph() -> None:
     """Test that elements are added to graph."""
     element_1 = ObjectType("http://uri1.com")
     element_2 = ObjectType("http://uri2.com")
+    element_3 = URI("http://uri3.com")
 
     expected = Graph()
     expected.parse(data=element_1.to_rdf(format="turtle"), format="turtle")
     expected.parse(data=element_2.to_rdf(format="turtle"), format="turtle")
 
-    actual = add_elements_to_graph(Graph(), [element_1, element_2])
+    actual = add_elements_to_graph(Graph(), [element_1, element_2, element_3])
 
     assert_isomorphic(expected, actual)

@@ -59,9 +59,10 @@ def json_schema_to_modelldcatno(json_schema_string: str, base_uri: str) -> Parse
     orphan_elements = []
 
     if isinstance(in_dict, dict):
+        schema = Schema(base_uri, in_dict)
         for root_element in in_dict.keys():
             parsed_schema = json_schema_component_to_modelldcatno(
-                json_schema_string, base_uri, [root_element]
+                schema, [root_element]
             )
             model_elements.extend(parsed_schema.model_elements)
             orphan_elements.extend(parsed_schema.orphan_elements)
@@ -71,13 +72,12 @@ def json_schema_to_modelldcatno(json_schema_string: str, base_uri: str) -> Parse
 
 
 def json_schema_component_to_modelldcatno(
-    json_schema_string: str, base_uri: str, path: List[str]
+    schema: Schema, path: List[str]
 ) -> ParsedSchema:
     """Parse a single component in a JSON Schema to a modelldcatno representation.
 
     Args:
-        json_schema_string: A valid JSON Schema string.
-        base_uri: Base URI of the schema.
+        schema: A jsonschematordf Schema object.
         path: Path to the component to be serialized.
 
     Returns:
@@ -87,25 +87,21 @@ def json_schema_component_to_modelldcatno(
 
     Example:
     >>> from jsonschematordf.parse import json_schema_component_to_modelldcatno
+    >>> from jsonschematordf.schema import Schema
     >>> json_schema_string = "{ 'schemas': { 'Element': { 'type': 'object' } } }"
     >>> base_uri = "http://uri.com"
+    >>> schema = Schema(base_uri, json_schema_string)
     >>> path = ["schemas", "Element"]
     >>> model_elements, orphan_elements = json_schema_component_to_modelldcatno(
-        ... json_schema_string, base_uri, path
+        ... schema, path
         ...)
     """
-    in_dict = yaml.safe_load(json_schema_string)
+    model_elements = []
+    components = schema.get_components_by_path_list(path)
 
-    if isinstance(in_dict, dict):
-        schema = Schema(base_uri, in_dict)
-        model_elements = []
-        components = schema.get_components_by_path_list(path)
+    for component in components:
+        parsed_element = create_model_element(component, schema)
+        if parsed_element:
+            model_elements.append(parsed_element)
 
-        for component in components:
-            parsed_element = create_model_element(component, schema)
-            if parsed_element:
-                model_elements.append(parsed_element)
-
-        return ParsedSchema(model_elements, schema.orphan_elements)
-
-    return ParsedSchema()
+    return ParsedSchema(model_elements, schema.orphan_elements)

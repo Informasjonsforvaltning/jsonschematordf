@@ -460,7 +460,10 @@ def test_determine_ref_type_returns_object_if_external(mocker: MockerFixture) ->
 
     mock_schema = mocker.MagicMock()
 
-    assert modelldcatno_factory._determine_ref_type("test", mock_schema) == "object"
+    assert (
+        modelldcatno_factory._determine_ref_type("test", mock_schema)
+        == EXTERNAL_REFERENCE
+    )
 
 
 @pytest.mark.unit
