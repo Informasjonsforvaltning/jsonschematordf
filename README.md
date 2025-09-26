@@ -1,12 +1,12 @@
+# jsonschematordf
 
 > ⚠️ This repository is archived
 > 
 > This codebase is no longer in use and is not under active development.
 > If you are interested in reviving or contributing to this project, please contact us at fellesdatakatalog@digdir.no.
 
-
-# jsonschematordf
 A library that will map a json schema to rdf
+
 ### Eksempelbruk av bibliotek
 ```
 from datacatalogtordf import Catalog
